@@ -1,0 +1,3 @@
+[submodule "LAMDA-PILOT"]
+	path = LAMDA-PILOT
+	url = https://github.com/sun-hailong/LAMDA-PILOT.git
