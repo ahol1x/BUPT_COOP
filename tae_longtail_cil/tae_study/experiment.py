@@ -7,6 +7,7 @@ import json
 import math
 import random
 import statistics
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -54,6 +55,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--highlight-cases", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--test-tasks", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--verbose", action="store_true", help="Print live case, task, epoch, and evaluation details.")
+    parser.add_argument(
+        "--log-every-batches",
+        type=int,
+        default=0,
+        help="With --verbose, also print running training stats every N batches.",
+    )
     return parser.parse_args()
 
 
@@ -61,10 +69,19 @@ def run_experiment(args: argparse.Namespace) -> None:
     validate_args(args)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     device = pick_device(args.device)
+    live_log(
+        args,
+        "starting study "
+        f"device={device} studies={args.studies} epochs={args.epochs} "
+        f"batch_size={args.batch_size} output_dir={args.output_dir}",
+    )
+    live_log(args, f"loading CIFAR-10 data from {args.data_dir} download={args.download_data}")
     cache = make_cifar10_cache(args.data_dir, args.download_data)
     result_path = args.output_dir / "per_case_results.csv"
     rows = read_result_rows(result_path) if args.resume and result_path.exists() else []
     completed = {(row["case"], row["method"]) for row in rows}
+    if completed:
+        live_log(args, f"resume enabled: found {len(completed)} completed case/method runs")
 
     config_path = args.output_dir / "run_config.json"
     serializable_args = {
@@ -78,8 +95,9 @@ def run_experiment(args: argparse.Namespace) -> None:
         for method in (METHOD_BASELINE, METHOD_TAE):
             key = (case.name, method)
             if key in completed:
+                live_log(args, f"skipping completed {case.name} method={method}")
                 continue
-            print(f"running {case.name} method={method} seed={case.seed}")
+            print(f"running {case.name} method={method} seed={case.seed}", flush=True)
             row = run_method(case, method, args, device, cache)
             rows.append(row)
             write_result_rows(rows, result_path, args.test_tasks)
@@ -91,7 +109,25 @@ def run_experiment(args: argparse.Namespace) -> None:
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     write_html_report(rows, highlighted, summary, args.output_dir / "comparison.html", args.test_tasks)
     write_method_notes(args.output_dir / "paper_method_notes.md")
-    print(f"wrote results to {args.output_dir}")
+    print(f"wrote results to {args.output_dir}", flush=True)
+
+
+def live_log(args: argparse.Namespace, message: str) -> None:
+    if getattr(args, "verbose", False):
+        print(message, flush=True)
+
+
+def format_counts(labels: list[int], counts: dict[int, int]) -> str:
+    return ", ".join(f"{label}:{counts[label]}" for label in labels)
+
+
+def mask_coverage(masks: dict[str, torch.Tensor] | None) -> tuple[int, int, float]:
+    if masks is None:
+        return 0, 0, 0.0
+    active = sum(int(mask.sum().item()) for mask in masks.values())
+    total = sum(mask.numel() for mask in masks.values())
+    percent = 100.0 * active / max(total, 1)
+    return active, total, percent
 
 
 def validate_args(args: argparse.Namespace) -> None:
@@ -161,8 +197,12 @@ def run_method(
     seen_labels: list[int] = []
     curve: list[float] = []
     per_task_accuracy: dict[int, float] = {}
+    all_tasks = task_classes(case, args)
 
-    for task_index, current_labels in enumerate(task_classes(case, args), start=1):
+    live_log(args, f"[{case.name}][{method}] class_order={case.class_order}")
+    live_log(args, f"[{case.name}][{method}] train_counts={format_counts(case.class_order, case.train_counts)}")
+
+    for task_index, current_labels in enumerate(all_tasks, start=1):
         seen_labels.extend(current_labels)
         train_loader = make_loader(
             cache.train,
@@ -180,11 +220,24 @@ def run_method(
             batch_size=args.batch_size,
             shuffle=False,
         )
+        live_log(
+            args,
+            f"[{case.name}][{method}] task {task_index}/{len(all_tasks)} "
+            f"new_labels={current_labels} seen_labels={seen_labels} "
+            f"train_examples={len(train_loader.dataset)} eval_examples={len(eval_loader.dataset)} "
+            f"train_batches={len(train_loader)}",
+        )
 
         masks = None
         if method == METHOD_TAE:
+            live_log(args, f"[{case.name}][{method}] task {task_index}: initializing class centroids")
             init_new_centroids(model, centroids, train_loader, current_labels, device)
             if task_index > 1:
+                live_log(
+                    args,
+                    f"[{case.name}][{method}] task {task_index}: selecting TaE mask "
+                    f"budget={args.tae_budget:.2f} batches={args.mask_batches}",
+                )
                 masks = select_tae_mask(
                     model=model,
                     loader=train_loader,
@@ -192,6 +245,12 @@ def run_method(
                     device=device,
                     budget=args.tae_budget,
                     batches=args.mask_batches,
+                )
+                active, total, percent = mask_coverage(masks)
+                live_log(
+                    args,
+                    f"[{case.name}][{method}] task {task_index}: mask active_params={active}/{total} "
+                    f"({percent:.2f}%)",
                 )
 
         train_task(
@@ -205,10 +264,16 @@ def run_method(
             device=device,
             args=args,
             masks=masks,
+            task_index=task_index,
         )
         accuracy = evaluate(model, eval_loader, seen_labels, device)
         curve.append(accuracy)
         per_task_accuracy[task_index] = accuracy
+        live_log(
+            args,
+            f"[{case.name}][{method}] task {task_index}: eval_accuracy={accuracy:.2f}% "
+            f"curve={' '.join(f'{value:.2f}' for value in curve)}",
+        )
 
     row: dict[str, str] = {
         "case": case.name,
@@ -222,6 +287,11 @@ def run_method(
     }
     for task in args.test_tasks:
         row[f"task{task}_accuracy"] = f"{per_task_accuracy[task]:.6f}"
+    live_log(
+        args,
+        f"[{case.name}][{method}] complete final_accuracy={row['final_accuracy']} "
+        f"average_accuracy={row['average_accuracy']}",
+    )
     return row
 
 
@@ -351,6 +421,7 @@ def train_task(
     device: torch.device,
     args: argparse.Namespace,
     masks: dict[str, torch.Tensor] | None,
+    task_index: int,
 ) -> None:
     params = list(model.parameters())
     if method == METHOD_TAE:
@@ -366,9 +437,13 @@ def train_task(
     if method == METHOD_TAE:
         weights = class_weights(case, seen_labels, args.class_weight_beta, device).index_select(0, seen)
 
-    for _ in range(args.epochs):
+    for epoch in range(1, args.epochs + 1):
         model.train()
-        for images, labels in loader:
+        epoch_start = time.perf_counter()
+        epoch_loss = 0.0
+        epoch_correct = 0
+        epoch_total = 0
+        for batch_index, (images, labels) in enumerate(loader, start=1):
             images = images.to(device)
             labels = labels.to(device)
             optimizer.zero_grad(set_to_none=True)
@@ -388,6 +463,33 @@ def train_task(
                 apply_model_mask(model, masks)
                 apply_centroid_mask(centroids, current_labels)
             optimizer.step()
+            batch_total = int(labels.numel())
+            epoch_loss += float(loss.detach().item()) * batch_total
+            predictions = seen[seen_logits.detach().argmax(dim=1)]
+            epoch_correct += int((predictions == labels).sum().item())
+            epoch_total += batch_total
+            if (
+                getattr(args, "verbose", False)
+                and args.log_every_batches > 0
+                and batch_index % args.log_every_batches == 0
+            ):
+                running_loss = epoch_loss / max(epoch_total, 1)
+                running_acc = 100.0 * epoch_correct / max(epoch_total, 1)
+                print(
+                    f"[{case.name}][{method}] task {task_index} epoch {epoch}/{args.epochs} "
+                    f"batch {batch_index}/{len(loader)} loss={running_loss:.4f} "
+                    f"train_acc={running_acc:.2f}%",
+                    flush=True,
+                )
+        if getattr(args, "verbose", False):
+            mean_loss = epoch_loss / max(epoch_total, 1)
+            train_acc = 100.0 * epoch_correct / max(epoch_total, 1)
+            elapsed = time.perf_counter() - epoch_start
+            print(
+                f"[{case.name}][{method}] task {task_index} epoch {epoch}/{args.epochs} done "
+                f"loss={mean_loss:.4f} train_acc={train_acc:.2f}% time={elapsed:.1f}s",
+                flush=True,
+            )
 
 
 @torch.no_grad()
@@ -655,4 +757,3 @@ Expected benefit over the traditional baseline:
 The code here is a compact, server-friendly study runner inspired by the paper and the LAMDA-PILOT baseline folder. It does not modify the downloaded LAMDA-PILOT submodule.
 """
     path.write_text(body, encoding="utf-8")
-

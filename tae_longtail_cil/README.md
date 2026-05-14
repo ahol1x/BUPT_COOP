@@ -42,6 +42,20 @@ python main.py \
   --highlight-cases 1 5
 ```
 
+For a more detailed live run, add `--verbose`. You can also print running
+batch-level stats every N batches:
+
+```bash
+python main.py \
+  --download-data \
+  --device cuda \
+  --studies 10 \
+  --epochs 20 \
+  --batch-size 128 \
+  --verbose \
+  --log-every-batches 10
+```
+
 ## Outputs
 
 Running `main.py` writes readable outputs to `final_results/`:
@@ -53,4 +67,3 @@ Running `main.py` writes readable outputs to `final_results/`:
 - `paper_method_notes.md`: explanation of what was fixed and why TaE should help.
 
 The default setup uses 10 shuffled long-tailed CIFAR-10 cases. Each case has 5 incremental tasks with 2 classes per task, and the report highlights case 1 and case 5.
-
