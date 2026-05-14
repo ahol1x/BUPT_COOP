@@ -1,0 +1,58 @@
+{
+  "case1_balanced": {
+    "final_accuracy": {
+      "traditional_mean": 14.231,
+      "traditional_std": 0.9363576002551351,
+      "tae15_mean": 11.882,
+      "tae15_std": 1.4354310231502672,
+      "mean_difference_tae_minus_traditional": -2.349,
+      "paired_t_statistic": -7.577467540992007,
+      "paired_p_value": 3.4055405365339574e-05,
+      "significant_at_0.05": true,
+      "difference_95ci_low": -3.0502642610209874,
+      "difference_95ci_high": -1.647735738979013,
+      "n": 10
+    },
+    "average_incremental_accuracy": {
+      "traditional_mean": 31.851116666666666,
+      "traditional_std": 1.057935527598708,
+      "tae15_mean": 31.0469,
+      "tae15_std": 1.5146946544753812,
+      "mean_difference_tae_minus_traditional": -0.804216666666667,
+      "paired_t_statistic": -1.5870422419646406,
+      "paired_p_value": 0.1469651396304612,
+      "significant_at_0.05": false,
+      "difference_95ci_low": -1.950540592320047,
+      "difference_95ci_high": 0.3421072589867129,
+      "n": 10
+    }
+  },
+  "case2_shuffled_long_tail": {
+    "final_accuracy": {
+      "traditional_mean": 11.075,
+      "traditional_std": 2.04055139606921,
+      "tae15_mean": 11.146,
+      "tae15_std": 1.854245578845118,
+      "mean_difference_tae_minus_traditional": 0.07099999999999973,
+      "paired_t_statistic": 0.1808511096199676,
+      "paired_p_value": 0.8604914860164993,
+      "significant_at_0.05": false,
+      "difference_95ci_low": -0.8170960636633401,
+      "difference_95ci_high": 0.9590960636633395,
+      "n": 10
+    },
+    "average_incremental_accuracy": {
+      "traditional_mean": 27.655916666666666,
+      "traditional_std": 3.713211821645434,
+      "tae15_mean": 26.934033333333332,
+      "tae15_std": 3.5012888639245383,
+      "mean_difference_tae_minus_traditional": -0.7218833333333325,
+      "paired_t_statistic": -4.878055926417146,
+      "paired_p_value": 0.0008737268720015238,
+      "significant_at_0.05": true,
+      "difference_95ci_low": -1.0566506213427616,
+      "difference_95ci_high": -0.3871160453239034,
+      "n": 10
+    }
+  }
+}

@@ -1,0 +1,6 @@
+data/
+paper_text/*.txt
+results/*.pt
+results/*.tmp
+__pycache__/
+*.pyc
