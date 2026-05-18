@@ -1,0 +1,33 @@
+{
+  "data_dir": "/home/kennycao12/Python_Projects/BUPT/Chris/tae/tae_longtail_cil/data",
+  "output_dir": "final_results_tae_v2",
+  "download_data": true,
+  "device": "cuda",
+  "studies": 10,
+  "base_seed": 2026,
+  "classes_per_task": 2,
+  "epochs": 20,
+  "batch_size": 128,
+  "lr": 0.025,
+  "weight_decay": 0.0005,
+  "head_train_per_class": 5000,
+  "tail_ratio": 0.1,
+  "min_train_per_class": 50,
+  "test_per_class": 1000,
+  "tae_budget": 0.15,
+  "mask_batches": 20,
+  "centroid_min_weight": 0.1,
+  "centroid_max_weight": 0.1,
+  "class_weight_beta": 0.95,
+  "highlight_cases": [
+    1,
+    5
+  ],
+  "test_tasks": [
+    1,
+    5
+  ],
+  "resume": false,
+  "verbose": true,
+  "log_every_batches": 10
+}

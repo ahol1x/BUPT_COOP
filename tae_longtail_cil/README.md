@@ -16,6 +16,14 @@ The TaE idea improves this by:
 - Adding class centroids so features are pulled toward their own class and separated from other classes.
 - Reweighting classes so tail classes are not overwhelmed by head classes.
 
+The TaE runner also includes long-tail-specific corrections:
+
+- Class-balanced sampling for TaE task batches, so tail classes contribute to both mask selection and training.
+- Balanced-softmax loss with bounded effective-number class weights.
+- Class-balanced centroid loss, so the centroid objective is not dominated by head-class images.
+- Centroid prototype replay for older classes, which preserves an old-class classifier signal without replaying old images.
+- Evaluation-time logit adjustment to reduce head-class prior bias on balanced test splits.
+
 ## Run
 
 From this folder:
@@ -39,6 +47,10 @@ python main.py \
   --epochs 20 \
   --batch-size 128 \
   --tae-budget 0.15 \
+  --class-weight-beta 0.9999 \
+  --max-class-weight 6 \
+  --prototype-replay-weight 0.25 \
+  --logit-adjustment-tau 0.5 \
   --highlight-cases 1 5
 ```
 
@@ -54,6 +66,22 @@ python main.py \
   --batch-size 128 \
   --verbose \
   --log-every-batches 10
+```
+
+If you want to compare against the older TaE behavior, disable the new balanced
+sampler and remove the extra long-tail correction strength:
+
+```bash
+python main.py \
+  --download-data \
+  --device cuda \
+  --studies 10 \
+  --epochs 20 \
+  --batch-size 128 \
+  --no-tae-balanced-sampling \
+  --class-weight-beta 0.95 \
+  --prototype-replay-weight 0 \
+  --logit-adjustment-tau 0
 ```
 
 ## Outputs

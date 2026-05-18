@@ -51,7 +51,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mask-batches", type=int, default=20)
     parser.add_argument("--centroid-min-weight", type=float, default=0.1)
     parser.add_argument("--centroid-max-weight", type=float, default=0.1)
-    parser.add_argument("--class-weight-beta", type=float, default=0.95)
+    parser.add_argument("--class-weight-beta", type=float, default=0.9999)
+    parser.add_argument("--max-class-weight", type=float, default=6.0)
+    parser.add_argument("--prototype-replay-weight", type=float, default=0.25)
+    parser.add_argument("--logit-adjustment-tau", type=float, default=0.5)
     parser.add_argument("--highlight-cases", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--test-tasks", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--resume", action="store_true")
@@ -61,6 +64,19 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=0,
         help="With --verbose, also print running training stats every N batches.",
+    )
+    parser.set_defaults(tae_balanced_sampling=True)
+    parser.add_argument(
+        "--tae-balanced-sampling",
+        dest="tae_balanced_sampling",
+        action="store_true",
+        help="Use class-balanced sampling for TaE current-task batches.",
+    )
+    parser.add_argument(
+        "--no-tae-balanced-sampling",
+        dest="tae_balanced_sampling",
+        action="store_false",
+        help="Disable class-balanced sampling for TaE.",
     )
     return parser.parse_args()
 
@@ -73,7 +89,10 @@ def run_experiment(args: argparse.Namespace) -> None:
         args,
         "starting study "
         f"device={device} studies={args.studies} epochs={args.epochs} "
-        f"batch_size={args.batch_size} output_dir={args.output_dir}",
+        f"batch_size={args.batch_size} tae_balanced_sampling={args.tae_balanced_sampling} "
+        f"class_weight_beta={args.class_weight_beta} max_class_weight={args.max_class_weight} "
+        f"prototype_replay_weight={args.prototype_replay_weight} "
+        f"logit_adjustment_tau={args.logit_adjustment_tau} output_dir={args.output_dir}",
     )
     live_log(args, f"loading CIFAR-10 data from {args.data_dir} download={args.download_data}")
     cache = make_cifar10_cache(args.data_dir, args.download_data)
@@ -137,6 +156,14 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--tae-budget must be in (0, 1].")
     if args.tail_ratio <= 0 or args.tail_ratio > 1:
         raise ValueError("--tail-ratio must be in (0, 1].")
+    if args.class_weight_beta <= 0 or args.class_weight_beta >= 1:
+        raise ValueError("--class-weight-beta must be in (0, 1).")
+    if args.max_class_weight < 1:
+        raise ValueError("--max-class-weight must be at least 1.")
+    if args.prototype_replay_weight < 0:
+        raise ValueError("--prototype-replay-weight must be non-negative.")
+    if args.logit_adjustment_tau < 0:
+        raise ValueError("--logit-adjustment-tau must be non-negative.")
     max_task = TOTAL_CLASSES // args.classes_per_task
     invalid_tasks = [task for task in args.test_tasks if task < 1 or task > max_task]
     if invalid_tasks:
@@ -211,6 +238,7 @@ def run_method(
             seed=case.seed + task_index,
             batch_size=args.batch_size,
             shuffle=True,
+            class_balanced=method == METHOD_TAE and args.tae_balanced_sampling,
         )
         eval_loader = make_loader(
             cache.test,
@@ -220,18 +248,28 @@ def run_method(
             batch_size=args.batch_size,
             shuffle=False,
         )
+        centroid_loader = train_loader
+        if method == METHOD_TAE and args.tae_balanced_sampling:
+            centroid_loader = make_loader(
+                cache.train,
+                current_labels,
+                case.train_counts,
+                seed=case.seed + task_index,
+                batch_size=args.batch_size,
+                shuffle=False,
+            )
         live_log(
             args,
             f"[{case.name}][{method}] task {task_index}/{len(all_tasks)} "
             f"new_labels={current_labels} seen_labels={seen_labels} "
             f"train_examples={len(train_loader.dataset)} eval_examples={len(eval_loader.dataset)} "
-            f"train_batches={len(train_loader)}",
+            f"train_batches={len(train_loader)} balanced_sampling={method == METHOD_TAE and args.tae_balanced_sampling}",
         )
 
         masks = None
         if method == METHOD_TAE:
             live_log(args, f"[{case.name}][{method}] task {task_index}: initializing class centroids")
-            init_new_centroids(model, centroids, train_loader, current_labels, device)
+            init_new_centroids(model, centroids, centroid_loader, current_labels, device)
             if task_index > 1:
                 live_log(
                     args,
@@ -242,6 +280,8 @@ def run_method(
                     model=model,
                     loader=train_loader,
                     seen_labels=seen_labels,
+                    case=case,
+                    args=args,
                     device=device,
                     budget=args.tae_budget,
                     batches=args.mask_batches,
@@ -266,7 +306,13 @@ def run_method(
             masks=masks,
             task_index=task_index,
         )
-        accuracy = evaluate(model, eval_loader, seen_labels, device)
+        if method == METHOD_TAE:
+            live_log(args, f"[{case.name}][{method}] task {task_index}: refreshing centroids after training")
+            init_new_centroids(model, centroids, centroid_loader, current_labels, device)
+        logit_adjustment = None
+        if method == METHOD_TAE and args.logit_adjustment_tau > 0:
+            logit_adjustment = make_logit_adjustment(case, seen_labels, args.logit_adjustment_tau, device)
+        accuracy = evaluate(model, eval_loader, seen_labels, device, logit_adjustment)
         curve.append(accuracy)
         per_task_accuracy[task_index] = accuracy
         live_log(
@@ -302,20 +348,76 @@ def remap_labels(labels: torch.Tensor, seen_labels: list[int]) -> torch.Tensor:
     return mapped
 
 
-def class_weights(case: LongTailCase, seen_labels: list[int], beta: float, device: torch.device) -> torch.Tensor:
+def class_counts(case: LongTailCase, seen_labels: list[int], device: torch.device) -> torch.Tensor:
+    return torch.tensor(
+        [max(case.train_counts[label], 1) for label in seen_labels],
+        dtype=torch.float32,
+        device=device,
+    )
+
+
+def class_weights(
+    case: LongTailCase,
+    seen_labels: list[int],
+    beta: float,
+    max_weight: float,
+    device: torch.device,
+) -> torch.Tensor:
     weights = torch.ones(TOTAL_CLASSES, device=device)
     for label in seen_labels:
         n = max(case.train_counts[label], 1)
         effective = (1.0 - beta**n) / max(1.0 - beta, 1e-8)
         weights[label] = 1.0 / max(effective, 1e-8)
     weights = weights / weights[seen_labels].mean()
+    weights = torch.clamp(weights, max=max_weight)
+    weights = weights / weights[seen_labels].mean()
     return weights
+
+
+def balanced_softmax_loss(
+    logits: torch.Tensor,
+    labels: torch.Tensor,
+    counts: torch.Tensor,
+    weights: torch.Tensor | None,
+) -> torch.Tensor:
+    adjusted_logits = logits + counts.clamp_min(1.0).log().unsqueeze(0)
+    per_sample = F.cross_entropy(adjusted_logits, labels, reduction="none")
+    if weights is None:
+        return per_sample.mean()
+    sample_weights = weights.index_select(0, labels)
+    return (per_sample * sample_weights).sum() / sample_weights.sum().clamp_min(1e-8)
+
+
+def make_logit_adjustment(
+    case: LongTailCase,
+    seen_labels: list[int],
+    tau: float,
+    device: torch.device,
+) -> torch.Tensor:
+    counts = class_counts(case, seen_labels, device)
+    priors = counts / counts.mean().clamp_min(1e-8)
+    return -tau * priors.clamp_min(1e-8).log()
+
+
+def prototype_replay_loss(
+    model: SmallCILNet,
+    centroids: torch.Tensor,
+    seen_labels: list[int],
+    device: torch.device,
+) -> torch.Tensor:
+    seen = torch.tensor(seen_labels, dtype=torch.long, device=device)
+    proto_features = centroids.index_select(0, seen)
+    proto_logits = model.classifier(proto_features).index_select(1, seen)
+    proto_targets = torch.arange(len(seen_labels), dtype=torch.long, device=device)
+    return F.cross_entropy(proto_logits, proto_targets)
 
 
 def select_tae_mask(
     model: nn.Module,
     loader: DataLoader,
     seen_labels: list[int],
+    case: LongTailCase,
+    args: argparse.Namespace,
     device: torch.device,
     budget: float,
     batches: int,
@@ -327,6 +429,14 @@ def select_tae_mask(
         if param.requires_grad
     }
     seen = torch.tensor(seen_labels, dtype=torch.long, device=device)
+    counts = class_counts(case, seen_labels, device)
+    weights = class_weights(
+        case,
+        seen_labels,
+        args.class_weight_beta,
+        args.max_class_weight,
+        device,
+    ).index_select(0, seen)
     used_batches = 0
 
     for images, labels in loader:
@@ -335,7 +445,7 @@ def select_tae_mask(
         model.zero_grad(set_to_none=True)
         logits = model(images).index_select(1, seen)
         local_labels = remap_labels(labels, seen_labels).to(device)
-        loss = F.cross_entropy(logits, local_labels)
+        loss = balanced_softmax_loss(logits, local_labels, counts, weights)
         loss.backward()
         for name, param in model.named_parameters():
             if param.grad is not None:
@@ -380,10 +490,23 @@ def centroid_loss(
     labels: torch.Tensor,
     centroids: torch.Tensor,
     seen_labels: list[int],
+    label_weights: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     norm_features = F.normalize(features, dim=1)
     norm_centroids = F.normalize(centroids, dim=1)
-    l_min = -F.cosine_similarity(norm_features, norm_centroids[labels], dim=1).mean()
+    per_sample_l_min = -F.cosine_similarity(norm_features, norm_centroids[labels], dim=1)
+    if label_weights is None:
+        l_min = per_sample_l_min.mean()
+    else:
+        class_losses = []
+        class_loss_weights = []
+        for label in labels.unique().tolist():
+            mask = labels == label
+            class_losses.append(per_sample_l_min[mask].mean())
+            class_loss_weights.append(label_weights[label])
+        stacked_losses = torch.stack(class_losses)
+        stacked_weights = torch.stack(class_loss_weights)
+        l_min = (stacked_losses * stacked_weights).sum() / stacked_weights.sum().clamp_min(1e-8)
     seen = torch.tensor(seen_labels, dtype=torch.long, device=features.device)
     seen_centroids = norm_centroids.index_select(0, seen)
     if len(seen_labels) <= 1:
@@ -398,6 +521,8 @@ def apply_model_mask(model: nn.Module, masks: dict[str, torch.Tensor] | None) ->
     if masks is None:
         return
     for name, param in model.named_parameters():
+        if name.startswith("classifier."):
+            continue
         if param.grad is not None and name in masks:
             param.grad.mul_(masks[name])
 
@@ -433,9 +558,18 @@ def train_task(
         weight_decay=args.weight_decay,
     )
     seen = torch.tensor(seen_labels, dtype=torch.long, device=device)
-    weights = None
+    seen_counts = class_counts(case, seen_labels, device)
+    global_label_weights = None
+    local_label_weights = None
     if method == METHOD_TAE:
-        weights = class_weights(case, seen_labels, args.class_weight_beta, device).index_select(0, seen)
+        global_label_weights = class_weights(
+            case,
+            seen_labels,
+            args.class_weight_beta,
+            args.max_class_weight,
+            device,
+        )
+        local_label_weights = global_label_weights.index_select(0, seen)
 
     for epoch in range(1, args.epochs + 1):
         model.train()
@@ -450,14 +584,35 @@ def train_task(
             logits, features = model(images, return_features=True)
             seen_logits = logits.index_select(1, seen)
             local_labels = remap_labels(labels, seen_labels).to(device)
-            loss = F.cross_entropy(seen_logits, local_labels, weight=weights)
             if method == METHOD_TAE:
-                l_min, l_max = centroid_loss(features, labels, centroids, seen_labels)
+                loss = balanced_softmax_loss(
+                    seen_logits,
+                    local_labels,
+                    seen_counts,
+                    local_label_weights,
+                )
+            else:
+                loss = F.cross_entropy(seen_logits, local_labels)
+            if method == METHOD_TAE:
+                l_min, l_max = centroid_loss(
+                    features,
+                    labels,
+                    centroids,
+                    seen_labels,
+                    global_label_weights,
+                )
                 loss = (
                     loss
                     + args.centroid_min_weight * l_min
                     + args.centroid_max_weight * l_max
                 )
+                if task_index > 1 and args.prototype_replay_weight > 0:
+                    loss = loss + args.prototype_replay_weight * prototype_replay_loss(
+                        model,
+                        centroids,
+                        seen_labels,
+                        device,
+                    )
             loss.backward()
             if method == METHOD_TAE:
                 apply_model_mask(model, masks)
@@ -493,7 +648,13 @@ def train_task(
 
 
 @torch.no_grad()
-def evaluate(model: SmallCILNet, loader: DataLoader, seen_labels: list[int], device: torch.device) -> float:
+def evaluate(
+    model: SmallCILNet,
+    loader: DataLoader,
+    seen_labels: list[int],
+    device: torch.device,
+    logit_adjustment: torch.Tensor | None = None,
+) -> float:
     model.eval()
     seen = torch.tensor(seen_labels, dtype=torch.long, device=device)
     correct = 0
@@ -502,6 +663,8 @@ def evaluate(model: SmallCILNet, loader: DataLoader, seen_labels: list[int], dev
         images = images.to(device)
         labels = labels.to(device)
         logits = model(images).index_select(1, seen)
+        if logit_adjustment is not None:
+            logits = logits + logit_adjustment.unsqueeze(0)
         predictions = seen[logits.argmax(dim=1)]
         correct += int((predictions == labels).sum().item())
         total += int(labels.numel())
@@ -742,11 +905,15 @@ def write_method_notes(path: Path) -> None:
 
 Paper 0471 addresses long-tailed class-incremental learning, where each new task can contain head classes with many samples and tail classes with very few samples. Traditional full-update finetuning often overfits the new head classes and overwrites older class representations.
 
-This folder implements three ideas from the paper:
+This folder implements the following ideas from the paper:
 
 1. Task-aware parameter selection: before each new task after task 1, the runner accumulates gradients on the incoming task and selects the top-p percent most sensitive parameters.
-2. Frozen majority update: during that task, only the selected parameters are updated, while the rest of the model is protected from drift.
-3. Centroid-enhanced representation: each class has a learnable centroid. The model pulls features toward their own class centroid and pushes different class centroids apart. A class reweighting term also reduces head-class dominance.
+2. Frozen majority update: during that task, only the selected feature parameters are updated, while the rest of the feature extractor is protected from drift. The classifier remains trainable so tail correction and prototype replay can directly update class boundaries.
+3. Long-tail-aware task batches: TaE uses class-balanced sampling inside each current task so tail classes influence mask selection and training instead of being drowned out by head classes.
+4. Long-tail loss correction: TaE uses balanced-softmax cross-entropy plus bounded effective-number class weights, which makes the current tail classes more expensive to misclassify while avoiding unstable unbounded weights.
+5. Centroid-enhanced representation: each class has a learnable centroid. The model pulls features toward their own class centroid and pushes different class centroids apart using a class-balanced centroid loss.
+6. Centroid prototype replay: on later tasks, old class centroids are used as lightweight feature prototypes so the classifier keeps a direct old-class signal without replaying old images.
+7. Evaluation-time logit adjustment: TaE applies a small prior correction at evaluation to reduce head-class bias under balanced test classes.
 
 Expected benefit over the traditional baseline:
 

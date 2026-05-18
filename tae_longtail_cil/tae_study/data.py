@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
 from torchvision import datasets, transforms
 
 
@@ -101,17 +101,36 @@ def make_loader(
     seed: int,
     batch_size: int,
     shuffle: bool,
+    class_balanced: bool = False,
 ) -> DataLoader:
     rng = np.random.default_rng(seed)
     subset = dataset.subset(labels, per_class_counts, rng)
     generator = torch.Generator()
     generator.manual_seed(seed)
+    sampler = None
+    if class_balanced and shuffle:
+        subset_targets = dataset.targets[np.asarray(subset.indices)]
+        class_counts = {
+            label: max(int((subset_targets == label).sum()), 1)
+            for label in labels
+        }
+        sample_weights = np.asarray(
+            [1.0 / class_counts[int(label)] for label in subset_targets],
+            dtype=np.float64,
+        )
+        sampler = WeightedRandomSampler(
+            weights=torch.as_tensor(sample_weights, dtype=torch.double),
+            num_samples=len(sample_weights),
+            replacement=True,
+            generator=generator,
+        )
+
     return DataLoader(
         subset,
         batch_size=batch_size,
-        shuffle=shuffle,
+        shuffle=shuffle if sampler is None else False,
+        sampler=sampler,
         num_workers=0,
         generator=generator,
         pin_memory=torch.cuda.is_available(),
     )
-
