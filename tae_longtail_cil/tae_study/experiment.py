@@ -8,14 +8,14 @@ import math
 import random
 import statistics
 import time
-from dataclasses import asdict
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset, WeightedRandomSampler
 
 from tae_study.data import CIFARCache, LongTailCase, make_cifar10_cache, make_loader
 from tae_study.models import SmallCILNet
@@ -23,8 +23,17 @@ from tae_study.models import SmallCILNet
 
 TOTAL_CLASSES = 10
 CLASSES_PER_TASK = 2
+CIFAR_IMAGE_BYTES = 32 * 32 * 3
 METHOD_BASELINE = "traditional_full_update"
 METHOD_TAE = "tae_ced_top_p"
+METHOD_TAE_REVIEW = "tae_review_replay"
+METHODS = (METHOD_BASELINE, METHOD_TAE, METHOD_TAE_REVIEW)
+TAE_METHODS = {METHOD_TAE, METHOD_TAE_REVIEW}
+METHOD_COLORS = {
+    METHOD_BASELINE: "#2563eb",
+    METHOD_TAE: "#dc2626",
+    METHOD_TAE_REVIEW: "#059669",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,6 +64,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-class-weight", type=float, default=6.0)
     parser.add_argument("--prototype-replay-weight", type=float, default=0.25)
     parser.add_argument("--logit-adjustment-tau", type=float, default=0.5)
+    parser.add_argument(
+        "--methods",
+        nargs="+",
+        choices=METHODS,
+        default=list(METHODS),
+        help="Methods to run. Default runs traditional, TaE, and TaE with review replay.",
+    )
+    parser.add_argument("--review-exemplars-per-class", type=int, default=100)
+    parser.add_argument("--review-epochs", type=int, default=3)
+    parser.add_argument("--review-lr-scale", type=float, default=0.25)
     parser.add_argument("--highlight-cases", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--test-tasks", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--resume", action="store_true")
@@ -92,7 +111,9 @@ def run_experiment(args: argparse.Namespace) -> None:
         f"batch_size={args.batch_size} tae_balanced_sampling={args.tae_balanced_sampling} "
         f"class_weight_beta={args.class_weight_beta} max_class_weight={args.max_class_weight} "
         f"prototype_replay_weight={args.prototype_replay_weight} "
-        f"logit_adjustment_tau={args.logit_adjustment_tau} output_dir={args.output_dir}",
+        f"logit_adjustment_tau={args.logit_adjustment_tau} "
+        f"review_exemplars_per_class={args.review_exemplars_per_class} "
+        f"review_epochs={args.review_epochs} methods={args.methods} output_dir={args.output_dir}",
     )
     live_log(args, f"loading CIFAR-10 data from {args.data_dir} download={args.download_data}")
     cache = make_cifar10_cache(args.data_dir, args.download_data)
@@ -111,7 +132,7 @@ def run_experiment(args: argparse.Namespace) -> None:
 
     for case_index in range(1, args.studies + 1):
         case = make_longtail_case(case_index, args)
-        for method in (METHOD_BASELINE, METHOD_TAE):
+        for method in args.methods:
             key = (case.name, method)
             if key in completed:
                 live_log(args, f"skipping completed {case.name} method={method}")
@@ -149,6 +170,109 @@ def mask_coverage(masks: dict[str, torch.Tensor] | None) -> tuple[int, int, floa
     return active, total, percent
 
 
+def is_tae_method(method: str) -> bool:
+    return method in TAE_METHODS
+
+
+def uses_review_memory(method: str) -> bool:
+    return method == METHOD_TAE_REVIEW
+
+
+@dataclass
+class RuntimeStats:
+    training_seconds: float = 0.0
+    review_seconds: float = 0.0
+    evaluation_seconds: float = 0.0
+    review_events: int = 0
+
+
+class ReviewMemory:
+    def __init__(self, exemplars_per_class: int) -> None:
+        self.exemplars_per_class = exemplars_per_class
+        self.indices_by_class: dict[int, list[int]] = {}
+
+    def update(
+        self,
+        dataset,
+        labels: list[int],
+        per_class_counts: dict[int, int],
+        seed: int,
+    ) -> None:
+        rng = np.random.default_rng(seed)
+        for label in labels:
+            class_indices = np.asarray(dataset.by_class[label])
+            available_count = min(per_class_counts.get(label, len(class_indices)), len(class_indices))
+            if available_count <= 0 or self.exemplars_per_class <= 0:
+                self.indices_by_class[label] = []
+                continue
+            available = rng.choice(class_indices, size=available_count, replace=False)
+            keep_count = min(self.exemplars_per_class, available_count)
+            chosen = rng.choice(available, size=keep_count, replace=False)
+            self.indices_by_class[label] = chosen.tolist()
+
+    def labels(self) -> list[int]:
+        return sorted(label for label, indices in self.indices_by_class.items() if indices)
+
+    def indices(self, labels: list[int]) -> list[int]:
+        selected: list[int] = []
+        for label in labels:
+            selected.extend(self.indices_by_class.get(label, []))
+        return selected
+
+    def exemplar_count(self) -> int:
+        return sum(len(indices) for indices in self.indices_by_class.values())
+
+    def replay_memory_bytes(self) -> int:
+        return self.exemplar_count() * CIFAR_IMAGE_BYTES
+
+    def make_loader(
+        self,
+        dataset,
+        labels: list[int],
+        batch_size: int,
+        seed: int,
+        class_balanced: bool = True,
+    ) -> DataLoader | None:
+        indices = self.indices(labels)
+        if not indices:
+            return None
+        subset = Subset(dataset.dataset, indices)
+        generator = torch.Generator()
+        generator.manual_seed(seed)
+        if not class_balanced:
+            return DataLoader(
+                subset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=0,
+                generator=generator,
+                pin_memory=torch.cuda.is_available(),
+            )
+        subset_targets = dataset.targets[np.asarray(indices)]
+        class_counts = {
+            label: max(int((subset_targets == label).sum()), 1)
+            for label in labels
+        }
+        weights = np.asarray(
+            [1.0 / class_counts[int(label)] for label in subset_targets],
+            dtype=np.float64,
+        )
+        sampler = WeightedRandomSampler(
+            weights=torch.as_tensor(weights, dtype=torch.double),
+            num_samples=len(indices),
+            replacement=True,
+            generator=generator,
+        )
+        return DataLoader(
+            subset,
+            batch_size=batch_size,
+            sampler=sampler,
+            num_workers=0,
+            generator=generator,
+            pin_memory=torch.cuda.is_available(),
+        )
+
+
 def validate_args(args: argparse.Namespace) -> None:
     if TOTAL_CLASSES % args.classes_per_task != 0:
         raise ValueError("TOTAL_CLASSES must be divisible by --classes-per-task.")
@@ -164,6 +288,14 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--prototype-replay-weight must be non-negative.")
     if args.logit_adjustment_tau < 0:
         raise ValueError("--logit-adjustment-tau must be non-negative.")
+    if args.review_exemplars_per_class < 0:
+        raise ValueError("--review-exemplars-per-class must be non-negative.")
+    if args.review_epochs < 0:
+        raise ValueError("--review-epochs must be non-negative.")
+    if args.review_lr_scale <= 0:
+        raise ValueError("--review-lr-scale must be positive.")
+    if not args.methods:
+        raise ValueError("--methods must include at least one method.")
     max_task = TOTAL_CLASSES // args.classes_per_task
     invalid_tasks = [task for task in args.test_tasks if task < 1 or task > max_task]
     if invalid_tasks:
@@ -219,8 +351,13 @@ def run_method(
     cache: CIFARCache,
 ) -> dict[str, str]:
     set_seed(case.seed)
+    method_start = time.perf_counter()
+    stats = RuntimeStats()
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
     model = SmallCILNet(num_classes=TOTAL_CLASSES, feature_dim=128).to(device)
     centroids = torch.zeros(TOTAL_CLASSES, model.feature_dim, device=device, requires_grad=True)
+    review_memory = ReviewMemory(args.review_exemplars_per_class) if uses_review_memory(method) else None
     seen_labels: list[int] = []
     curve: list[float] = []
     per_task_accuracy: dict[int, float] = {}
@@ -238,7 +375,7 @@ def run_method(
             seed=case.seed + task_index,
             batch_size=args.batch_size,
             shuffle=True,
-            class_balanced=method == METHOD_TAE and args.tae_balanced_sampling,
+            class_balanced=is_tae_method(method) and args.tae_balanced_sampling,
         )
         eval_loader = make_loader(
             cache.test,
@@ -249,7 +386,7 @@ def run_method(
             shuffle=False,
         )
         centroid_loader = train_loader
-        if method == METHOD_TAE and args.tae_balanced_sampling:
+        if is_tae_method(method) and args.tae_balanced_sampling:
             centroid_loader = make_loader(
                 cache.train,
                 current_labels,
@@ -263,11 +400,11 @@ def run_method(
             f"[{case.name}][{method}] task {task_index}/{len(all_tasks)} "
             f"new_labels={current_labels} seen_labels={seen_labels} "
             f"train_examples={len(train_loader.dataset)} eval_examples={len(eval_loader.dataset)} "
-            f"train_batches={len(train_loader)} balanced_sampling={method == METHOD_TAE and args.tae_balanced_sampling}",
+            f"train_batches={len(train_loader)} balanced_sampling={is_tae_method(method) and args.tae_balanced_sampling}",
         )
 
         masks = None
-        if method == METHOD_TAE:
+        if is_tae_method(method):
             live_log(args, f"[{case.name}][{method}] task {task_index}: initializing class centroids")
             init_new_centroids(model, centroids, centroid_loader, current_labels, device)
             if task_index > 1:
@@ -293,6 +430,7 @@ def run_method(
                     f"({percent:.2f}%)",
                 )
 
+        train_start = time.perf_counter()
         train_task(
             model=model,
             centroids=centroids,
@@ -306,13 +444,61 @@ def run_method(
             masks=masks,
             task_index=task_index,
         )
-        if method == METHOD_TAE:
+        stats.training_seconds += time.perf_counter() - train_start
+        if is_tae_method(method):
             live_log(args, f"[{case.name}][{method}] task {task_index}: refreshing centroids after training")
             init_new_centroids(model, centroids, centroid_loader, current_labels, device)
+        if review_memory is not None:
+            review_start = time.perf_counter()
+            for class_offset, new_label in enumerate(current_labels):
+                review_memory.update(
+                    cache.train,
+                    [new_label],
+                    case.train_counts,
+                    seed=case.seed + 5000 + task_index * 100 + class_offset,
+                )
+                memory_labels = [label for label in seen_labels if label in review_memory.labels()]
+                review_loader = review_memory.make_loader(
+                    cache.train,
+                    memory_labels,
+                    args.batch_size,
+                    seed=case.seed + 6000 + task_index * 100 + class_offset,
+                    class_balanced=True,
+                )
+                if review_loader is not None and args.review_epochs > 0:
+                    stats.review_events += 1
+                    live_log(
+                        args,
+                        f"[{case.name}][{method}] task {task_index}: review after class {new_label} "
+                        f"with {review_memory.exemplar_count()} exemplars for {args.review_epochs} epochs",
+                    )
+                    review_task(
+                        model=model,
+                        centroids=centroids,
+                        loader=review_loader,
+                        seen_labels=memory_labels,
+                        case=case,
+                        device=device,
+                        args=args,
+                        task_index=task_index,
+                        method=method,
+                    )
+                    centroid_review_loader = review_memory.make_loader(
+                        cache.train,
+                        memory_labels,
+                        args.batch_size,
+                        seed=case.seed + 7000 + task_index * 100 + class_offset,
+                        class_balanced=False,
+                    )
+                    if centroid_review_loader is not None:
+                        init_new_centroids(model, centroids, centroid_review_loader, memory_labels, device)
+            stats.review_seconds += time.perf_counter() - review_start
         logit_adjustment = None
-        if method == METHOD_TAE and args.logit_adjustment_tau > 0:
+        if is_tae_method(method) and args.logit_adjustment_tau > 0:
             logit_adjustment = make_logit_adjustment(case, seen_labels, args.logit_adjustment_tau, device)
+        eval_start = time.perf_counter()
         accuracy = evaluate(model, eval_loader, seen_labels, device, logit_adjustment)
+        stats.evaluation_seconds += time.perf_counter() - eval_start
         curve.append(accuracy)
         per_task_accuracy[task_index] = accuracy
         live_log(
@@ -321,6 +507,12 @@ def run_method(
             f"curve={' '.join(f'{value:.2f}' for value in curve)}",
         )
 
+    replay_exemplars = review_memory.exemplar_count() if review_memory is not None else 0
+    replay_memory_bytes = review_memory.replay_memory_bytes() if review_memory is not None else 0
+    centroid_memory_bytes = centroids.numel() * centroids.element_size() if is_tae_method(method) else 0
+    extra_memory_bytes = replay_memory_bytes + centroid_memory_bytes
+    peak_cuda_memory_bytes = torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0
+    total_elapsed_seconds = time.perf_counter() - method_start
     row: dict[str, str] = {
         "case": case.name,
         "study_seed": str(case.seed),
@@ -330,6 +522,19 @@ def run_method(
         "curve": " ".join(f"{value:.4f}" for value in curve),
         "final_accuracy": f"{curve[-1]:.6f}",
         "average_accuracy": f"{statistics.mean(curve):.6f}",
+        "total_elapsed_seconds": f"{total_elapsed_seconds:.3f}",
+        "training_seconds": f"{stats.training_seconds:.3f}",
+        "review_seconds": f"{stats.review_seconds:.3f}",
+        "evaluation_seconds": f"{stats.evaluation_seconds:.3f}",
+        "review_events": str(stats.review_events),
+        "replay_exemplars": str(replay_exemplars),
+        "replay_memory_bytes": str(replay_memory_bytes),
+        "replay_memory_mb": f"{replay_memory_bytes / (1024 ** 2):.6f}",
+        "centroid_memory_bytes": str(centroid_memory_bytes),
+        "extra_memory_bytes": str(extra_memory_bytes),
+        "extra_memory_mb": f"{extra_memory_bytes / (1024 ** 2):.6f}",
+        "peak_cuda_memory_bytes": str(peak_cuda_memory_bytes),
+        "peak_cuda_memory_mb": f"{peak_cuda_memory_bytes / (1024 ** 2):.6f}",
     }
     for task in args.test_tasks:
         row[f"task{task}_accuracy"] = f"{per_task_accuracy[task]:.6f}"
@@ -549,7 +754,7 @@ def train_task(
     task_index: int,
 ) -> None:
     params = list(model.parameters())
-    if method == METHOD_TAE:
+    if is_tae_method(method):
         params.append(centroids)
     optimizer = torch.optim.SGD(
         params,
@@ -561,7 +766,7 @@ def train_task(
     seen_counts = class_counts(case, seen_labels, device)
     global_label_weights = None
     local_label_weights = None
-    if method == METHOD_TAE:
+    if is_tae_method(method):
         global_label_weights = class_weights(
             case,
             seen_labels,
@@ -584,7 +789,7 @@ def train_task(
             logits, features = model(images, return_features=True)
             seen_logits = logits.index_select(1, seen)
             local_labels = remap_labels(labels, seen_labels).to(device)
-            if method == METHOD_TAE:
+            if is_tae_method(method):
                 loss = balanced_softmax_loss(
                     seen_logits,
                     local_labels,
@@ -593,7 +798,7 @@ def train_task(
                 )
             else:
                 loss = F.cross_entropy(seen_logits, local_labels)
-            if method == METHOD_TAE:
+            if is_tae_method(method):
                 l_min, l_max = centroid_loss(
                     features,
                     labels,
@@ -614,7 +819,7 @@ def train_task(
                         device,
                     )
             loss.backward()
-            if method == METHOD_TAE:
+            if is_tae_method(method):
                 apply_model_mask(model, masks)
                 apply_centroid_mask(centroids, current_labels)
             optimizer.step()
@@ -643,6 +848,102 @@ def train_task(
             print(
                 f"[{case.name}][{method}] task {task_index} epoch {epoch}/{args.epochs} done "
                 f"loss={mean_loss:.4f} train_acc={train_acc:.2f}% time={elapsed:.1f}s",
+                flush=True,
+            )
+
+
+def review_task(
+    model: SmallCILNet,
+    centroids: torch.Tensor,
+    loader: DataLoader,
+    seen_labels: list[int],
+    case: LongTailCase,
+    device: torch.device,
+    args: argparse.Namespace,
+    task_index: int,
+    method: str,
+) -> None:
+    params = list(model.parameters()) + [centroids]
+    optimizer = torch.optim.SGD(
+        params,
+        lr=args.lr * args.review_lr_scale,
+        momentum=0.9,
+        weight_decay=args.weight_decay,
+    )
+    seen = torch.tensor(seen_labels, dtype=torch.long, device=device)
+    seen_counts = class_counts(case, seen_labels, device)
+    global_label_weights = class_weights(
+        case,
+        seen_labels,
+        args.class_weight_beta,
+        args.max_class_weight,
+        device,
+    )
+    local_label_weights = global_label_weights.index_select(0, seen)
+
+    for epoch in range(1, args.review_epochs + 1):
+        model.train()
+        epoch_start = time.perf_counter()
+        epoch_loss = 0.0
+        epoch_correct = 0
+        epoch_total = 0
+        for batch_index, (images, labels) in enumerate(loader, start=1):
+            images = images.to(device)
+            labels = labels.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            logits, features = model(images, return_features=True)
+            seen_logits = logits.index_select(1, seen)
+            local_labels = remap_labels(labels, seen_labels).to(device)
+            loss = balanced_softmax_loss(
+                seen_logits,
+                local_labels,
+                seen_counts,
+                local_label_weights,
+            )
+            l_min, l_max = centroid_loss(
+                features,
+                labels,
+                centroids,
+                seen_labels,
+                global_label_weights,
+            )
+            loss = loss + args.centroid_min_weight * l_min + args.centroid_max_weight * l_max
+            if task_index > 1 and args.prototype_replay_weight > 0:
+                loss = loss + args.prototype_replay_weight * prototype_replay_loss(
+                    model,
+                    centroids,
+                    seen_labels,
+                    device,
+                )
+            loss.backward()
+            apply_centroid_mask(centroids, seen_labels)
+            optimizer.step()
+
+            batch_total = int(labels.numel())
+            epoch_loss += float(loss.detach().item()) * batch_total
+            predictions = seen[seen_logits.detach().argmax(dim=1)]
+            epoch_correct += int((predictions == labels).sum().item())
+            epoch_total += batch_total
+            if (
+                getattr(args, "verbose", False)
+                and args.log_every_batches > 0
+                and batch_index % args.log_every_batches == 0
+            ):
+                running_loss = epoch_loss / max(epoch_total, 1)
+                running_acc = 100.0 * epoch_correct / max(epoch_total, 1)
+                print(
+                    f"[{case.name}][{method}] task {task_index} review epoch {epoch}/{args.review_epochs} "
+                    f"batch {batch_index}/{len(loader)} loss={running_loss:.4f} "
+                    f"review_acc={running_acc:.2f}%",
+                    flush=True,
+                )
+        if getattr(args, "verbose", False):
+            mean_loss = epoch_loss / max(epoch_total, 1)
+            review_acc = 100.0 * epoch_correct / max(epoch_total, 1)
+            elapsed = time.perf_counter() - epoch_start
+            print(
+                f"[{case.name}][{method}] task {task_index} review epoch {epoch}/{args.review_epochs} done "
+                f"loss={mean_loss:.4f} review_acc={review_acc:.2f}% time={elapsed:.1f}s",
                 flush=True,
             )
 
@@ -681,7 +982,25 @@ def result_fieldnames(test_tasks: list[int]) -> list[str]:
         "curve",
     ]
     fields.extend(f"task{task}_accuracy" for task in test_tasks)
-    fields.extend(["final_accuracy", "average_accuracy"])
+    fields.extend(
+        [
+            "final_accuracy",
+            "average_accuracy",
+            "total_elapsed_seconds",
+            "training_seconds",
+            "review_seconds",
+            "evaluation_seconds",
+            "review_events",
+            "replay_exemplars",
+            "replay_memory_bytes",
+            "replay_memory_mb",
+            "centroid_memory_bytes",
+            "extra_memory_bytes",
+            "extra_memory_mb",
+            "peak_cuda_memory_bytes",
+            "peak_cuda_memory_mb",
+        ]
+    )
     return fields
 
 
@@ -689,7 +1008,7 @@ def write_result_rows(rows: list[dict[str, str]], path: Path, test_tasks: list[i
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = result_fieldnames(test_tasks)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -712,25 +1031,82 @@ def write_highlight_rows(
 
 
 def summarize(rows: list[dict[str, str]], test_tasks: list[int], highlight_cases: list[int]) -> dict:
+    methods = method_order(rows)
     summary: dict[str, object] = {
         "methods": {},
-        "differences_tae_minus_traditional": {},
+        "differences_vs_traditional": {},
         "highlight_cases": [f"case{case_index:02d}" for case_index in highlight_cases],
     }
-    metrics = [f"task{task}_accuracy" for task in test_tasks] + ["final_accuracy", "average_accuracy"]
-    by_method = {method: [row for row in rows if row["method"] == method] for method in (METHOD_BASELINE, METHOD_TAE)}
+    metrics = summary_metrics(test_tasks)
+    by_method = {method: [row for row in rows if row["method"] == method] for method in methods}
     for method, method_rows in by_method.items():
         summary["methods"][method] = {
-            metric: describe([float(row[metric]) for row in method_rows])
+            metric: describe(numeric_values(method_rows, metric))
             for metric in metrics
         }
 
-    for metric in metrics:
-        baseline = {row["case"]: float(row[metric]) for row in by_method[METHOD_BASELINE]}
-        tae = {row["case"]: float(row[metric]) for row in by_method[METHOD_TAE]}
-        diffs = [tae[name] - baseline[name] for name in sorted(baseline) if name in tae]
-        summary["differences_tae_minus_traditional"][metric] = describe(diffs)
+    baseline_by_case = {row["case"]: row for row in by_method.get(METHOD_BASELINE, [])}
+    for method in methods:
+        if method == METHOD_BASELINE:
+            continue
+        summary["differences_vs_traditional"][method] = {}
+        for metric in metrics:
+            diffs = []
+            for row in by_method[method]:
+                baseline_row = baseline_by_case.get(row["case"])
+                if baseline_row is None:
+                    continue
+                value = parse_float(row.get(metric))
+                baseline_value = parse_float(baseline_row.get(metric))
+                if value is not None and baseline_value is not None:
+                    diffs.append(value - baseline_value)
+            summary["differences_vs_traditional"][method][metric] = describe(diffs)
+
+    if METHOD_TAE in summary["differences_vs_traditional"]:
+        summary["differences_tae_minus_traditional"] = summary["differences_vs_traditional"][METHOD_TAE]
     return summary
+
+
+def summary_metrics(test_tasks: list[int]) -> list[str]:
+    return [
+        *[f"task{task}_accuracy" for task in test_tasks],
+        "final_accuracy",
+        "average_accuracy",
+        "total_elapsed_seconds",
+        "training_seconds",
+        "review_seconds",
+        "evaluation_seconds",
+        "review_events",
+        "replay_exemplars",
+        "replay_memory_mb",
+        "extra_memory_mb",
+        "peak_cuda_memory_mb",
+    ]
+
+
+def method_order(rows: list[dict[str, str]]) -> list[str]:
+    present = {row["method"] for row in rows}
+    ordered = [method for method in METHODS if method in present]
+    ordered.extend(sorted(present - set(ordered)))
+    return ordered
+
+
+def parse_float(value: str | None) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def numeric_values(rows: list[dict[str, str]], metric: str) -> list[float]:
+    values: list[float] = []
+    for row in rows:
+        value = parse_float(row.get(metric))
+        if value is not None:
+            values.append(value)
+    return values
 
 
 def describe(values: list[float]) -> dict[str, float]:
@@ -752,19 +1128,17 @@ def parse_curve(value: str) -> list[float]:
 
 def mean_curve(rows: list[dict[str, str]], method: str) -> list[float]:
     curves = [parse_curve(row["curve"]) for row in rows if row["method"] == method]
+    if not curves:
+        return []
     return [statistics.mean(points) for points in zip(*curves)]
 
 
 def svg_line_chart(title: str, series: dict[str, list[float]]) -> str:
     width, height = 780, 360
     left, right, top, bottom = 58, 28, 24, 48
-    colors = {
-        METHOD_BASELINE: "#2563eb",
-        METHOD_TAE: "#dc2626",
-        "traditional": "#2563eb",
-        "tae": "#dc2626",
-    }
     values = [value for points in series.values() for value in points]
+    if not values:
+        return ""
     ymin = max(0.0, math.floor(min(values) / 10.0) * 10.0)
     ymax = min(100.0, math.ceil(max(values) / 10.0) * 10.0)
     if ymax <= ymin:
@@ -790,7 +1164,7 @@ def svg_line_chart(title: str, series: dict[str, list[float]]) -> str:
     lines = []
     circles = []
     for label, points in series.items():
-        color = colors.get(label, "#111827")
+        color = METHOD_COLORS.get(label, "#111827")
         encoded = " ".join(
             f"{x_pos(index, len(points)):.2f},{y_pos(value):.2f}"
             for index, value in enumerate(points)
@@ -836,31 +1210,40 @@ def write_html_report(
     path: Path,
     test_tasks: list[int],
 ) -> None:
+    methods = method_order(rows)
     mean_series = {
-        METHOD_BASELINE: mean_curve(rows, METHOD_BASELINE),
-        METHOD_TAE: mean_curve(rows, METHOD_TAE),
+        method: mean_curve(rows, method)
+        for method in methods
+        if mean_curve(rows, method)
     }
     charts = [svg_line_chart("Mean accuracy across all long-tail cases", mean_series)]
     for case_name in sorted({row["case"] for row in highlighted}):
         case_rows = [row for row in highlighted if row["case"] == case_name]
         series = {row["method"]: parse_curve(row["curve"]) for row in case_rows}
-        if len(series) == 2:
+        if series:
             charts.append(svg_line_chart(f"{case_name} detailed curve", series))
 
     metric_rows = []
-    metrics = [f"task{task}_accuracy" for task in test_tasks] + ["final_accuracy", "average_accuracy"]
+    metrics = summary_metrics(test_tasks)
     for metric in metrics:
-        baseline = summary["methods"][METHOD_BASELINE][metric]["mean"]
-        tae = summary["methods"][METHOD_TAE][metric]["mean"]
-        diff = summary["differences_tae_minus_traditional"][metric]["mean"]
-        metric_rows.append(
-            "<tr>"
-            f"<td>{html.escape(metric)}</td>"
-            f"<td>{baseline:.2f}</td>"
-            f"<td>{tae:.2f}</td>"
-            f"<td>{diff:+.2f}</td>"
-            "</tr>"
-        )
+        for method in methods:
+            mean = summary["methods"][method][metric]["mean"]
+            diff = 0.0
+            if method != METHOD_BASELINE:
+                diff = summary["differences_vs_traditional"][method][metric]["mean"]
+            metric_rows.append(
+                "<tr>"
+                f"<td>{html.escape(metric)}</td>"
+                f"<td>{html.escape(method)}</td>"
+                f"<td>{mean:.3f}</td>"
+                f"<td>{diff:+.3f}</td>"
+                "</tr>"
+            )
+    legend = "".join(
+        f'<span><span class="swatch" style="background:{METHOD_COLORS.get(method, "#111827")}"></span>'
+        f"{html.escape(method)}</span>"
+        for method in methods
+    )
 
     body = f"""<!doctype html>
 <html lang="en">
@@ -883,15 +1266,14 @@ def write_html_report(
 </head>
 <body>
   <h1>TaE Long-tail CIL Comparison</h1>
-  <p>This report compares a traditional full-update baseline with a TaE/CEd model across shuffled long-tailed CIFAR-10 class-incremental studies. The highlighted case curves show the requested case 1 and case 5 details when those cases are present.</p>
+  <p>This report compares a traditional full-update baseline, TaE/CEd, and optionally TaE with review replay across shuffled long-tailed CIFAR-10 class-incremental studies. Memory columns report persistent extra method memory, with replay images estimated as raw 32x32 RGB CIFAR exemplars.</p>
   <div class="legend">
-    <span><span class="swatch" style="background:#2563eb"></span>{html.escape(METHOD_BASELINE)}</span>
-    <span><span class="swatch" style="background:#dc2626"></span>{html.escape(METHOD_TAE)}</span>
+    {legend}
   </div>
   {''.join(charts)}
   <h2>Mean Summary</h2>
   <table>
-    <thead><tr><th>Metric</th><th>Traditional mean</th><th>TaE/CEd mean</th><th>Difference</th></tr></thead>
+    <thead><tr><th>Metric</th><th>Method</th><th>Mean</th><th>Difference vs traditional</th></tr></thead>
     <tbody>{''.join(metric_rows)}</tbody>
   </table>
 </body>
@@ -914,12 +1296,16 @@ This folder implements the following ideas from the paper:
 5. Centroid-enhanced representation: each class has a learnable centroid. The model pulls features toward their own class centroid and pushes different class centroids apart using a class-balanced centroid loss.
 6. Centroid prototype replay: on later tasks, old class centroids are used as lightweight feature prototypes so the classifier keeps a direct old-class signal without replaying old images.
 7. Evaluation-time logit adjustment: TaE applies a small prior correction at evaluation to reduce head-class bias under balanced test classes.
+8. Review replay: the `tae_review_replay` method stores a small class-balanced exemplar memory. After each newly introduced class is studied, it adds that class to memory and reviews all remembered seen classes before evaluation.
 
 Expected benefit over the traditional baseline:
 
 - Less catastrophic forgetting because most older parameters are not changed on every new task.
 - Better tail-class feature separation because the centroid loss gives sparse tail classes a stronger geometric target.
+- Stronger old-class retention in the review variant because every newly learned task is followed by a balanced review of old and new classes.
 - Lower adaptation cost than fully expanding a whole backbone for every task because only a selected parameter subset is trainable per task.
+
+The result CSV records `total_elapsed_seconds`, `training_seconds`, `review_seconds`, `review_events`, `replay_exemplars`, `replay_memory_mb`, `extra_memory_mb`, and `peak_cuda_memory_mb`. Replay memory is estimated as raw CIFAR RGB images: exemplar_count x 32 x 32 x 3 bytes. Extra memory also includes the class centroid tensor used by TaE methods.
 
 The code here is a compact, server-friendly study runner inspired by the paper and the LAMDA-PILOT baseline folder. It does not modify the downloaded LAMDA-PILOT submodule.
 """

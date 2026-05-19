@@ -1,4 +1,4 @@
-# What This Study Implements From Paper 0471
+ts# What This Study Implements From Paper 0471
 
 Paper 0471 addresses long-tailed class-incremental learning, where each new task can contain head classes with many samples and tail classes with very few samples. Traditional full-update finetuning often overfits the new head classes and overwrites older class representations.
 

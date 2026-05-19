@@ -23,6 +23,7 @@ The TaE runner also includes long-tail-specific corrections:
 - Class-balanced centroid loss, so the centroid objective is not dominated by head-class images.
 - Centroid prototype replay for older classes, which preserves an old-class classifier signal without replaying old images.
 - Evaluation-time logit adjustment to reduce head-class prior bias on balanced test splits.
+- A review-replay method, `tae_review_replay`, that stores a small balanced exemplar memory and reviews all remembered classes after each newly introduced class is studied.
 
 ## Run
 
@@ -51,6 +52,8 @@ python main.py \
   --max-class-weight 6 \
   --prototype-replay-weight 0.25 \
   --logit-adjustment-tau 0.5 \
+  --review-exemplars-per-class 100 \
+  --review-epochs 3 \
   --highlight-cases 1 5
 ```
 
@@ -64,6 +67,23 @@ python main.py \
   --studies 10 \
   --epochs 20 \
   --batch-size 128 \
+  --verbose \
+  --log-every-batches 10
+```
+
+To run only the new review model against the traditional baseline:
+
+```bash
+python main.py \
+  --download-data \
+  --device cuda \
+  --methods traditional_full_update tae_review_replay \
+  --studies 10 \
+  --epochs 20 \
+  --batch-size 128 \
+  --review-exemplars-per-class 100 \
+  --review-epochs 3 \
+  --output-dir final_results_tae_review \
   --verbose \
   --log-every-batches 10
 ```
@@ -88,10 +108,18 @@ python main.py \
 
 Running `main.py` writes readable outputs to `final_results/`:
 
-- `per_case_results.csv`: all 10 long-tailed cases for both models.
+- `per_case_results.csv`: all requested long-tailed cases and methods.
 - `highlight_case_results.csv`: details for case 1 and case 5 by default.
-- `summary.json`: mean, std, min, max, and TaE-minus-baseline differences.
+- `summary.json`: mean, std, min, max, and method-minus-traditional differences.
 - `comparison.html`: visual comparison curves.
 - `paper_method_notes.md`: explanation of what was fixed and why TaE should help.
 
 The default setup uses 10 shuffled long-tailed CIFAR-10 cases. Each case has 5 incremental tasks with 2 classes per task, and the report highlights case 1 and case 5.
+
+The result CSV also reports runtime and extra memory:
+
+- `total_elapsed_seconds`, `training_seconds`, `review_seconds`, and `review_events`.
+- `replay_exemplars`, `replay_memory_mb`, and `extra_memory_mb`.
+- `peak_cuda_memory_mb` when running on CUDA.
+
+Replay memory is estimated as raw CIFAR-10 images: `exemplars * 32 * 32 * 3` bytes. With the default 100 exemplars per class, the final review buffer stores up to 1000 images, about 2.93 MiB, plus about 0.005 MiB for TaE centroids.
