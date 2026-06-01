@@ -1,0 +1,96 @@
+{
+  "cnn": {
+    "average_incremental_accuracy": 77.321,
+    "final_accuracy": 65.18,
+    "final_grouped_accuracy": {
+      "total": 65.18,
+      "00-09": 29.8,
+      "10-19": 39.6,
+      "20-29": 64.5,
+      "30-39": 63.9,
+      "40-49": 64.2,
+      "50-59": 56.9,
+      "60-69": 75.4,
+      "70-79": 74.4,
+      "80-89": 87.7,
+      "90-99": 95.4,
+      "old": 61.82,
+      "new": 95.4
+    },
+    "forgetting": 33.544444444444444,
+    "grouped_accuracy_by_eval": [],
+    "top1_curve": [
+      98.9,
+      92.55,
+      85.0,
+      83.7,
+      75.04,
+      73.22,
+      72.14,
+      64.4,
+      63.08,
+      65.18
+    ],
+    "top5_curve": [
+      100.0,
+      99.55,
+      98.7,
+      98.58,
+      97.0,
+      96.4,
+      95.94,
+      94.41,
+      93.33,
+      93.06
+    ]
+  },
+  "config": "exps/step0_finetune_cifar100_b0inc10_seed1993.json",
+  "dataset_config_key": "cifar224",
+  "dataset_requested": "CIFAR100",
+  "method": "finetune",
+  "notes": [
+    "Metrics are parsed from the current wrapper log when available.",
+    "The repo's config key 'cifar224' downloads CIFAR100 and applies 224x224 transforms for ViT."
+  ],
+  "params": {
+    "final_total_params": 85867866,
+    "final_trainable_params": 85867866,
+    "total_params_by_task": [
+      85798656,
+      85806346,
+      85814036,
+      85821726,
+      85829416,
+      85837106,
+      85844796,
+      85852486,
+      85860176,
+      85867866
+    ],
+    "trainable_params_by_task": [
+      85798656,
+      85806346,
+      85814036,
+      85821726,
+      85829416,
+      85837106,
+      85844796,
+      85852486,
+      85860176,
+      85867866
+    ]
+  },
+  "run_name": "step0_finetune_cifar100_b0inc10_seed1993",
+  "runtime": {
+    "peak_gpu_memory_mib": 18819.0,
+    "wall_clock_seconds": 3847.0
+  },
+  "seed": 1993,
+  "source_logs": {
+    "gpu_memory_samples": "outputs/step0_finetune_cifar100_b0inc10_seed1993/gpu_memory_samples.csv",
+    "repo_log": "logs/finetune/cifar224/0/10/step0_1993_vit_base_patch16_224.log",
+    "wall_clock_seconds": "outputs/step0_finetune_cifar100_b0inc10_seed1993/wall_clock_seconds.txt",
+    "wrapper_log": "logs/step0_finetune_cifar100_b0inc10_seed1993.log"
+  },
+  "split": "B0-Inc10"
+}
