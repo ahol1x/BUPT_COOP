@@ -1,0 +1,374 @@
+2026-06-01 15:04:33,970 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:04:33,970 [trainer.py] => prefix: step1
+2026-06-01 15:04:33,970 [trainer.py] => dataset: cifar224
+2026-06-01 15:04:33,970 [trainer.py] => memory_size: 0
+2026-06-01 15:04:33,970 [trainer.py] => memory_per_class: 0
+2026-06-01 15:04:33,970 [trainer.py] => fixed_memory: False
+2026-06-01 15:04:33,970 [trainer.py] => shuffle: True
+2026-06-01 15:04:33,970 [trainer.py] => init_cls: 10
+2026-06-01 15:04:33,970 [trainer.py] => increment: 10
+2026-06-01 15:04:33,970 [trainer.py] => model_name: mote
+2026-06-01 15:04:33,970 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:04:33,970 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:04:33,970 [trainer.py] => seed: 1993
+2026-06-01 15:04:33,970 [trainer.py] => init_epochs: 20
+2026-06-01 15:04:33,970 [trainer.py] => init_lr: 0.025
+2026-06-01 15:04:33,970 [trainer.py] => later_epochs: 20
+2026-06-01 15:04:33,971 [trainer.py] => later_lr: 0.025
+2026-06-01 15:04:33,971 [trainer.py] => batch_size: 48
+2026-06-01 15:04:33,971 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:04:33,971 [trainer.py] => min_lr: 0
+2026-06-01 15:04:33,971 [trainer.py] => optimizer: sgd
+2026-06-01 15:04:33,971 [trainer.py] => scheduler: cosine
+2026-06-01 15:04:33,971 [trainer.py] => pretrained: True
+2026-06-01 15:04:33,971 [trainer.py] => vpt_type: Deep
+2026-06-01 15:04:33,971 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:04:33,971 [trainer.py] => ffn_num: 64
+2026-06-01 15:04:33,971 [trainer.py] => use_diagonal: False
+2026-06-01 15:04:33,971 [trainer.py] => recalc_sim: True
+2026-06-01 15:04:33,971 [trainer.py] => alpha: 0.1
+2026-06-01 15:04:33,971 [trainer.py] => use_init_ptm: False
+2026-06-01 15:04:33,971 [trainer.py] => beta: 0
+2026-06-01 15:04:33,971 [trainer.py] => use_old_data: False
+2026-06-01 15:04:33,971 [trainer.py] => use_reweight: True
+2026-06-01 15:04:33,971 [trainer.py] => moni_adam: False
+2026-06-01 15:04:33,971 [trainer.py] => adapter_num: -1
+2026-06-01 15:04:33,971 [trainer.py] => print_forget: True
+2026-06-01 15:06:46,921 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:06:46,921 [trainer.py] => prefix: step1
+2026-06-01 15:06:46,921 [trainer.py] => dataset: cifar224
+2026-06-01 15:06:46,921 [trainer.py] => memory_size: 0
+2026-06-01 15:06:46,921 [trainer.py] => memory_per_class: 0
+2026-06-01 15:06:46,921 [trainer.py] => fixed_memory: False
+2026-06-01 15:06:46,921 [trainer.py] => shuffle: True
+2026-06-01 15:06:46,921 [trainer.py] => init_cls: 10
+2026-06-01 15:06:46,921 [trainer.py] => increment: 10
+2026-06-01 15:06:46,921 [trainer.py] => model_name: mote
+2026-06-01 15:06:46,921 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:06:46,921 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:06:46,921 [trainer.py] => seed: 1993
+2026-06-01 15:06:46,921 [trainer.py] => init_epochs: 20
+2026-06-01 15:06:46,921 [trainer.py] => init_lr: 0.025
+2026-06-01 15:06:46,921 [trainer.py] => later_epochs: 20
+2026-06-01 15:06:46,921 [trainer.py] => later_lr: 0.025
+2026-06-01 15:06:46,922 [trainer.py] => batch_size: 48
+2026-06-01 15:06:46,922 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:06:46,922 [trainer.py] => min_lr: 0
+2026-06-01 15:06:46,922 [trainer.py] => optimizer: sgd
+2026-06-01 15:06:46,922 [trainer.py] => scheduler: cosine
+2026-06-01 15:06:46,922 [trainer.py] => pretrained: True
+2026-06-01 15:06:46,922 [trainer.py] => vpt_type: Deep
+2026-06-01 15:06:46,922 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:06:46,922 [trainer.py] => ffn_num: 64
+2026-06-01 15:06:46,922 [trainer.py] => use_diagonal: False
+2026-06-01 15:06:46,922 [trainer.py] => recalc_sim: True
+2026-06-01 15:06:46,922 [trainer.py] => alpha: 0.1
+2026-06-01 15:06:46,922 [trainer.py] => use_init_ptm: False
+2026-06-01 15:06:46,922 [trainer.py] => beta: 0
+2026-06-01 15:06:46,922 [trainer.py] => use_old_data: False
+2026-06-01 15:06:46,922 [trainer.py] => use_reweight: True
+2026-06-01 15:06:46,922 [trainer.py] => moni_adam: False
+2026-06-01 15:06:46,922 [trainer.py] => adapter_num: -1
+2026-06-01 15:06:46,922 [trainer.py] => print_forget: True
+2026-06-01 15:08:20,265 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:08:20,265 [trainer.py] => prefix: step1
+2026-06-01 15:08:20,266 [trainer.py] => dataset: cifar224
+2026-06-01 15:08:20,266 [trainer.py] => memory_size: 0
+2026-06-01 15:08:20,266 [trainer.py] => memory_per_class: 0
+2026-06-01 15:08:20,266 [trainer.py] => fixed_memory: False
+2026-06-01 15:08:20,266 [trainer.py] => shuffle: True
+2026-06-01 15:08:20,266 [trainer.py] => init_cls: 10
+2026-06-01 15:08:20,266 [trainer.py] => increment: 10
+2026-06-01 15:08:20,266 [trainer.py] => model_name: mote
+2026-06-01 15:08:20,266 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:08:20,266 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:08:20,266 [trainer.py] => seed: 1993
+2026-06-01 15:08:20,266 [trainer.py] => init_epochs: 20
+2026-06-01 15:08:20,266 [trainer.py] => init_lr: 0.025
+2026-06-01 15:08:20,266 [trainer.py] => later_epochs: 20
+2026-06-01 15:08:20,266 [trainer.py] => later_lr: 0.025
+2026-06-01 15:08:20,266 [trainer.py] => batch_size: 48
+2026-06-01 15:08:20,266 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:08:20,266 [trainer.py] => min_lr: 0
+2026-06-01 15:08:20,266 [trainer.py] => optimizer: sgd
+2026-06-01 15:08:20,266 [trainer.py] => scheduler: cosine
+2026-06-01 15:08:20,266 [trainer.py] => pretrained: True
+2026-06-01 15:08:20,266 [trainer.py] => vpt_type: Deep
+2026-06-01 15:08:20,266 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:08:20,266 [trainer.py] => ffn_num: 64
+2026-06-01 15:08:20,266 [trainer.py] => use_diagonal: False
+2026-06-01 15:08:20,266 [trainer.py] => recalc_sim: True
+2026-06-01 15:08:20,266 [trainer.py] => alpha: 0.1
+2026-06-01 15:08:20,266 [trainer.py] => use_init_ptm: False
+2026-06-01 15:08:20,266 [trainer.py] => beta: 0
+2026-06-01 15:08:20,266 [trainer.py] => use_old_data: False
+2026-06-01 15:08:20,266 [trainer.py] => use_reweight: True
+2026-06-01 15:08:20,266 [trainer.py] => moni_adam: False
+2026-06-01 15:08:20,266 [trainer.py] => adapter_num: -1
+2026-06-01 15:08:20,266 [trainer.py] => print_forget: True
+2026-06-01 15:09:58,456 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:09:58,457 [trainer.py] => prefix: step1
+2026-06-01 15:09:58,457 [trainer.py] => dataset: cifar224
+2026-06-01 15:09:58,457 [trainer.py] => memory_size: 0
+2026-06-01 15:09:58,457 [trainer.py] => memory_per_class: 0
+2026-06-01 15:09:58,457 [trainer.py] => fixed_memory: False
+2026-06-01 15:09:58,457 [trainer.py] => shuffle: True
+2026-06-01 15:09:58,457 [trainer.py] => init_cls: 10
+2026-06-01 15:09:58,457 [trainer.py] => increment: 10
+2026-06-01 15:09:58,457 [trainer.py] => model_name: mote
+2026-06-01 15:09:58,457 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:09:58,457 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:09:58,457 [trainer.py] => seed: 1993
+2026-06-01 15:09:58,457 [trainer.py] => init_epochs: 20
+2026-06-01 15:09:58,457 [trainer.py] => init_lr: 0.025
+2026-06-01 15:09:58,457 [trainer.py] => later_epochs: 20
+2026-06-01 15:09:58,457 [trainer.py] => later_lr: 0.025
+2026-06-01 15:09:58,457 [trainer.py] => batch_size: 48
+2026-06-01 15:09:58,457 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:09:58,457 [trainer.py] => min_lr: 0
+2026-06-01 15:09:58,457 [trainer.py] => optimizer: sgd
+2026-06-01 15:09:58,457 [trainer.py] => scheduler: cosine
+2026-06-01 15:09:58,457 [trainer.py] => pretrained: True
+2026-06-01 15:09:58,457 [trainer.py] => vpt_type: Deep
+2026-06-01 15:09:58,457 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:09:58,457 [trainer.py] => ffn_num: 64
+2026-06-01 15:09:58,457 [trainer.py] => use_diagonal: False
+2026-06-01 15:09:58,457 [trainer.py] => recalc_sim: True
+2026-06-01 15:09:58,457 [trainer.py] => alpha: 0.1
+2026-06-01 15:09:58,457 [trainer.py] => use_init_ptm: False
+2026-06-01 15:09:58,457 [trainer.py] => beta: 0
+2026-06-01 15:09:58,457 [trainer.py] => use_old_data: False
+2026-06-01 15:09:58,458 [trainer.py] => use_reweight: True
+2026-06-01 15:09:58,458 [trainer.py] => moni_adam: False
+2026-06-01 15:09:58,458 [trainer.py] => adapter_num: -1
+2026-06-01 15:09:58,458 [trainer.py] => print_forget: True
+2026-06-01 15:38:19,266 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:38:19,267 [trainer.py] => prefix: step1
+2026-06-01 15:38:19,267 [trainer.py] => dataset: cifar224
+2026-06-01 15:38:19,267 [trainer.py] => memory_size: 0
+2026-06-01 15:38:19,267 [trainer.py] => memory_per_class: 0
+2026-06-01 15:38:19,267 [trainer.py] => fixed_memory: False
+2026-06-01 15:38:19,267 [trainer.py] => shuffle: True
+2026-06-01 15:38:19,267 [trainer.py] => init_cls: 10
+2026-06-01 15:38:19,267 [trainer.py] => increment: 10
+2026-06-01 15:38:19,267 [trainer.py] => model_name: mote
+2026-06-01 15:38:19,267 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:38:19,267 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:38:19,267 [trainer.py] => seed: 1993
+2026-06-01 15:38:19,267 [trainer.py] => init_epochs: 20
+2026-06-01 15:38:19,267 [trainer.py] => init_lr: 0.025
+2026-06-01 15:38:19,267 [trainer.py] => later_epochs: 20
+2026-06-01 15:38:19,267 [trainer.py] => later_lr: 0.025
+2026-06-01 15:38:19,267 [trainer.py] => batch_size: 48
+2026-06-01 15:38:19,267 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:38:19,267 [trainer.py] => min_lr: 0
+2026-06-01 15:38:19,267 [trainer.py] => optimizer: sgd
+2026-06-01 15:38:19,267 [trainer.py] => scheduler: cosine
+2026-06-01 15:38:19,267 [trainer.py] => pretrained: True
+2026-06-01 15:38:19,267 [trainer.py] => vpt_type: Deep
+2026-06-01 15:38:19,267 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:38:19,267 [trainer.py] => ffn_num: 64
+2026-06-01 15:38:19,267 [trainer.py] => use_diagonal: False
+2026-06-01 15:38:19,267 [trainer.py] => recalc_sim: True
+2026-06-01 15:38:19,267 [trainer.py] => alpha: 0.1
+2026-06-01 15:38:19,267 [trainer.py] => use_init_ptm: False
+2026-06-01 15:38:19,267 [trainer.py] => beta: 0
+2026-06-01 15:38:19,267 [trainer.py] => use_old_data: False
+2026-06-01 15:38:19,267 [trainer.py] => use_reweight: True
+2026-06-01 15:38:19,267 [trainer.py] => moni_adam: False
+2026-06-01 15:38:19,267 [trainer.py] => adapter_num: -1
+2026-06-01 15:38:19,267 [trainer.py] => print_forget: True
+2026-06-01 15:38:20,395 [data_manager.py] => [68, 56, 78, 8, 23, 84, 90, 65, 74, 76, 40, 89, 3, 92, 55, 9, 26, 80, 43, 38, 58, 70, 77, 1, 85, 19, 17, 50, 28, 53, 13, 81, 45, 82, 6, 59, 83, 16, 15, 44, 91, 41, 72, 60, 79, 52, 20, 10, 31, 54, 37, 95, 14, 71, 96, 98, 97, 2, 64, 66, 42, 22, 35, 86, 24, 34, 87, 21, 99, 0, 88, 27, 18, 94, 11, 12, 47, 25, 30, 46, 62, 69, 36, 61, 7, 63, 75, 5, 32, 4, 51, 48, 73, 93, 39, 67, 29, 49, 57, 33]
+2026-06-01 15:40:39,708 [trainer.py] => config: exps/step1_mote_cifar100_b0inc10_seed1993.json
+2026-06-01 15:40:39,708 [trainer.py] => prefix: step1
+2026-06-01 15:40:39,708 [trainer.py] => dataset: cifar224
+2026-06-01 15:40:39,708 [trainer.py] => memory_size: 0
+2026-06-01 15:40:39,708 [trainer.py] => memory_per_class: 0
+2026-06-01 15:40:39,708 [trainer.py] => fixed_memory: False
+2026-06-01 15:40:39,708 [trainer.py] => shuffle: True
+2026-06-01 15:40:39,708 [trainer.py] => init_cls: 10
+2026-06-01 15:40:39,708 [trainer.py] => increment: 10
+2026-06-01 15:40:39,708 [trainer.py] => model_name: mote
+2026-06-01 15:40:39,708 [trainer.py] => backbone_type: vit_base_patch16_224_mote
+2026-06-01 15:40:39,708 [trainer.py] => device: [device(type='cuda', index=0)]
+2026-06-01 15:40:39,708 [trainer.py] => seed: 1993
+2026-06-01 15:40:39,708 [trainer.py] => init_epochs: 20
+2026-06-01 15:40:39,708 [trainer.py] => init_lr: 0.025
+2026-06-01 15:40:39,708 [trainer.py] => later_epochs: 20
+2026-06-01 15:40:39,708 [trainer.py] => later_lr: 0.025
+2026-06-01 15:40:39,708 [trainer.py] => batch_size: 48
+2026-06-01 15:40:39,708 [trainer.py] => weight_decay: 0.0005
+2026-06-01 15:40:39,708 [trainer.py] => min_lr: 0
+2026-06-01 15:40:39,708 [trainer.py] => optimizer: sgd
+2026-06-01 15:40:39,709 [trainer.py] => scheduler: cosine
+2026-06-01 15:40:39,709 [trainer.py] => pretrained: True
+2026-06-01 15:40:39,709 [trainer.py] => vpt_type: Deep
+2026-06-01 15:40:39,709 [trainer.py] => prompt_token_num: 5
+2026-06-01 15:40:39,709 [trainer.py] => ffn_num: 64
+2026-06-01 15:40:39,709 [trainer.py] => use_diagonal: False
+2026-06-01 15:40:39,709 [trainer.py] => recalc_sim: True
+2026-06-01 15:40:39,709 [trainer.py] => alpha: 0.1
+2026-06-01 15:40:39,709 [trainer.py] => use_init_ptm: False
+2026-06-01 15:40:39,709 [trainer.py] => beta: 0
+2026-06-01 15:40:39,709 [trainer.py] => use_old_data: False
+2026-06-01 15:40:39,709 [trainer.py] => use_reweight: True
+2026-06-01 15:40:39,709 [trainer.py] => moni_adam: False
+2026-06-01 15:40:39,709 [trainer.py] => adapter_num: -1
+2026-06-01 15:40:39,709 [trainer.py] => print_forget: True
+2026-06-01 15:40:40,838 [data_manager.py] => [68, 56, 78, 8, 23, 84, 90, 65, 74, 76, 40, 89, 3, 92, 55, 9, 26, 80, 43, 38, 58, 70, 77, 1, 85, 19, 17, 50, 28, 53, 13, 81, 45, 82, 6, 59, 83, 16, 15, 44, 91, 41, 72, 60, 79, 52, 20, 10, 31, 54, 37, 95, 14, 71, 96, 98, 97, 2, 64, 66, 42, 22, 35, 86, 24, 34, 87, 21, 99, 0, 88, 27, 18, 94, 11, 12, 47, 25, 30, 46, 62, 69, 36, 61, 7, 63, 75, 5, 32, 4, 51, 48, 73, 93, 39, 67, 29, 49, 57, 33]
+2026-06-01 15:40:41,900 [vit_mote.py] => No local pretrained ViT checkpoint found for vit_base_patch16_224. Checked ['/home/kennycao12/Python_Projects/BUPT/Chris/MoTE/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz', '/home/kennycao12/Python_Projects/BUPT/Chris/MoTE/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz', '/pretrains/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz']. Falling back to timm pretrained=True.
+2026-06-01 15:40:42,496 [_builder.py] => Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_224.augreg2_in21k_ft_in1k)
+2026-06-01 15:40:46,209 [_client.py] => HTTP Request: HEAD https://hf-mirror.com/timm/vit_base_patch16_224.augreg2_in21k_ft_in1k/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+2026-06-01 15:40:46,397 [_client.py] => HTTP Request: GET https://cas-bridge.xethub.hf.co/xet-bridge-us/63a4062cde134926a2b2dbcd/ee9ba0793351304cd562dce212ea594a05e3b03f71540087cb0b5dffe3789235?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T074046Z&X-Amz-Expires=3600&X-Amz-Signature=91e28f3d14de2679c2a2d1a7174aa71173c38e8bf730ea7ef272f51e68225cde&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=62171e3b6a99db28e0b3159d&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27model.safetensors%3B+filename%3D%22model.safetensors%22%3B&x-amz-checksum-mode=ENABLED&x-id=GetObject&Expires=1780303246&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc4MDMwMzI0Nn19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82M2E0MDYyY2RlMTM0OTI2YTJiMmRiY2QvZWU5YmEwNzkzMzUxMzA0Y2Q1NjJkY2UyMTJlYTU5NGEwNWUzYjAzZjcxNTQwMDg3Y2IwYjVkZmZlMzc4OTIzNSoifV19&Signature=OcH2gGY9otdPFDUH0Ir7cwgx6xA1wdvS%7EHnZCz40tTlWX89Pi3mgbzCt7taABV60-RRngJ4%7E2c1uC2W4qkVJIIpEekPLL%7Eo7c6WS6Ii-W3f9OmJpRg07oAC4V13aDcQt0AM5th35dnCTj-LVPfBwvq0Vdx2Z%7EaIo4n4dFTWP2fmKC5v9ZwFUb8Ax%7EW2g9svEqPbQuxmV9FNp4VEbEOIN5YWQQ64YThG4Us2nrMx%7EShWnN%7EFdjCrBVG-mx%7EwmOdTt-A4CHlXtrJn-%7EVT2YiuX6OB7mOHaS%7EVTvNHh6T4ZF9sIlm9tMkOLi3V%7E5JGb5j%7EJQG5c3FxBctXLV3JQL0C2zw__&Key-Pair-Id=K2L8F4GPSG1IFC "HTTP/1.1 200 OK"
+2026-06-01 15:40:52,342 [_hub.py] => [timm/vit_base_patch16_224.augreg2_in21k_ft_in1k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
+2026-06-01 15:40:52,413 [trainer.py] => All params: 86988288
+2026-06-01 15:40:52,413 [trainer.py] => Trainable params: 1189632
+2026-06-01 15:40:52,414 [mote.py] => Learning on 0-10
+2026-06-01 15:45:52,023 [mote.py] => Task 0, Epoch 20/20 => Loss 0.218, Train_accy 93.06
+2026-06-01 15:46:02,058 [mote.py] => Task correct: 100.0
+2026-06-01 15:46:02,058 [mote.py] => Task acc: 98.1
+2026-06-01 15:46:02,058 [mote.py] => multi-expert-num: 0
+2026-06-01 15:46:02,058 [mote.py] => zero-expert-num: 0
+2026-06-01 15:46:02,059 [trainer.py] => No NME accuracy.
+2026-06-01 15:46:02,059 [trainer.py] => CNN: {'total': np.float64(98.1), '00-09': np.float64(98.1), 'old': 0, 'new': np.float64(98.1)}
+2026-06-01 15:46:02,059 [trainer.py] => CNN top1 curve: [np.float64(98.1)]
+2026-06-01 15:46:02,059 [trainer.py] => CNN top5 curve: [np.float64(99.8)]
+
+2026-06-01 15:46:02,059 [trainer.py] => Average Accuracy (CNN): 98.1 
+
+2026-06-01 15:46:02,060 [trainer.py] => All params: 87011331
+2026-06-01 15:46:02,060 [trainer.py] => Trainable params: 1189632
+2026-06-01 15:46:02,061 [mote.py] => Learning on 10-20
+2026-06-01 15:51:15,916 [mote.py] => Task 1, Epoch 20/20 => Loss 0.256, Train_accy 91.84
+2026-06-01 15:51:38,689 [mote.py] => Task correct: 97.25
+2026-06-01 15:51:38,689 [mote.py] => Task acc: 97.95
+2026-06-01 15:51:38,689 [mote.py] => multi-expert-num: 0
+2026-06-01 15:51:38,690 [mote.py] => zero-expert-num: 0
+2026-06-01 15:51:38,690 [trainer.py] => No NME accuracy.
+2026-06-01 15:51:38,690 [trainer.py] => CNN: {'total': np.float64(96.0), '00-09': np.float64(96.2), '10-19': np.float64(95.8), 'old': np.float64(96.2), 'new': np.float64(95.8)}
+2026-06-01 15:51:38,691 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0)]
+2026-06-01 15:51:38,691 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5)]
+
+2026-06-01 15:51:38,691 [trainer.py] => Average Accuracy (CNN): 97.05 
+
+2026-06-01 15:51:38,691 [trainer.py] => All params: 87026691
+2026-06-01 15:51:38,691 [trainer.py] => Trainable params: 1189632
+2026-06-01 15:51:38,692 [mote.py] => Learning on 20-30
+2026-06-01 15:56:36,661 [mote.py] => Task 2, Epoch 20/20 => Loss 0.163, Train_accy 95.00
+2026-06-01 15:57:14,535 [mote.py] => Task correct: 95.6
+2026-06-01 15:57:14,536 [mote.py] => Task acc: 98.36666666666666
+2026-06-01 15:57:14,536 [mote.py] => multi-expert-num: 0
+2026-06-01 15:57:14,536 [mote.py] => zero-expert-num: 0
+2026-06-01 15:57:14,537 [trainer.py] => No NME accuracy.
+2026-06-01 15:57:14,537 [trainer.py] => CNN: {'total': np.float64(94.7), '00-09': np.float64(94.2), '10-19': np.float64(94.0), '20-29': np.float64(95.9), 'old': np.float64(94.1), 'new': np.float64(95.9)}
+2026-06-01 15:57:14,537 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7)]
+2026-06-01 15:57:14,537 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37)]
+
+2026-06-01 15:57:14,537 [trainer.py] => Average Accuracy (CNN): 96.26666666666667 
+
+2026-06-01 15:57:14,538 [trainer.py] => All params: 87042051
+2026-06-01 15:57:14,538 [trainer.py] => Trainable params: 1189632
+2026-06-01 15:57:14,539 [mote.py] => Learning on 30-40
+2026-06-01 16:02:05,565 [mote.py] => Task 3, Epoch 20/20 => Loss 0.209, Train_accy 93.36
+2026-06-01 16:02:59,869 [mote.py] => Task correct: 94.7
+2026-06-01 16:02:59,869 [mote.py] => Task acc: 98.275
+2026-06-01 16:02:59,869 [mote.py] => multi-expert-num: 0
+2026-06-01 16:02:59,869 [mote.py] => zero-expert-num: 0
+2026-06-01 16:02:59,871 [trainer.py] => No NME accuracy.
+2026-06-01 16:02:59,871 [trainer.py] => CNN: {'total': np.float64(93.72), '00-09': np.float64(93.1), '10-19': np.float64(93.3), '20-29': np.float64(95.2), '30-39': np.float64(93.3), 'old': np.float64(93.87), 'new': np.float64(93.3)}
+2026-06-01 16:02:59,871 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72)]
+2026-06-01 16:02:59,871 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3)]
+
+2026-06-01 16:02:59,871 [trainer.py] => Average Accuracy (CNN): 95.63 
+
+2026-06-01 16:02:59,871 [trainer.py] => All params: 87057411
+2026-06-01 16:02:59,872 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:02:59,873 [mote.py] => Learning on 40-50
+2026-06-01 16:07:46,823 [mote.py] => Task 4, Epoch 20/20 => Loss 0.176, Train_accy 94.78
+2026-06-01 16:09:05,169 [mote.py] => Task correct: 93.34
+2026-06-01 16:09:05,169 [mote.py] => Task acc: 98.3
+2026-06-01 16:09:05,169 [mote.py] => multi-expert-num: 0
+2026-06-01 16:09:05,169 [mote.py] => zero-expert-num: 0
+2026-06-01 16:09:05,171 [trainer.py] => No NME accuracy.
+2026-06-01 16:09:05,171 [trainer.py] => CNN: {'total': np.float64(92.46), '00-09': np.float64(91.6), '10-19': np.float64(91.6), '20-29': np.float64(94.5), '30-39': np.float64(91.9), '40-49': np.float64(92.7), 'old': np.float64(92.4), 'new': np.float64(92.7)}
+2026-06-01 16:09:05,171 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46)]
+2026-06-01 16:09:05,171 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18)]
+
+2026-06-01 16:09:05,171 [trainer.py] => Average Accuracy (CNN): 94.996 
+
+2026-06-01 16:09:05,172 [trainer.py] => All params: 87072771
+2026-06-01 16:09:05,172 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:09:05,173 [mote.py] => Learning on 50-60
+2026-06-01 16:13:54,891 [mote.py] => Task 5, Epoch 20/20 => Loss 0.235, Train_accy 92.58
+2026-06-01 16:15:32,158 [mote.py] => Task correct: 92.05
+2026-06-01 16:15:32,158 [mote.py] => Task acc: 98.05
+2026-06-01 16:15:32,158 [mote.py] => multi-expert-num: 0
+2026-06-01 16:15:32,158 [mote.py] => zero-expert-num: 0
+2026-06-01 16:15:32,160 [trainer.py] => No NME accuracy.
+2026-06-01 16:15:32,160 [trainer.py] => CNN: {'total': np.float64(91.08), '00-09': np.float64(89.3), '10-19': np.float64(90.9), '20-29': np.float64(93.8), '30-39': np.float64(90.9), '40-49': np.float64(91.9), '50-59': np.float64(89.7), 'old': np.float64(91.36), 'new': np.float64(89.7)}
+2026-06-01 16:15:32,160 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46), np.float64(91.08)]
+2026-06-01 16:15:32,160 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18), np.float64(98.85)]
+
+2026-06-01 16:15:32,160 [trainer.py] => Average Accuracy (CNN): 94.34333333333332 
+
+2026-06-01 16:15:32,161 [trainer.py] => All params: 87088131
+2026-06-01 16:15:32,161 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:15:32,162 [mote.py] => Learning on 60-70
+2026-06-01 16:20:29,631 [mote.py] => Task 6, Epoch 20/20 => Loss 0.159, Train_accy 95.24
+2026-06-01 16:22:40,363 [mote.py] => Task correct: 91.22857142857143
+2026-06-01 16:22:40,363 [mote.py] => Task acc: 98.11428571428571
+2026-06-01 16:22:40,363 [mote.py] => multi-expert-num: 0
+2026-06-01 16:22:40,363 [mote.py] => zero-expert-num: 0
+2026-06-01 16:22:40,365 [trainer.py] => No NME accuracy.
+2026-06-01 16:22:40,365 [trainer.py] => CNN: {'total': np.float64(90.33), '00-09': np.float64(87.6), '10-19': np.float64(90.3), '20-29': np.float64(93.3), '30-39': np.float64(90.3), '40-49': np.float64(90.9), '50-59': np.float64(87.9), '60-69': np.float64(92.0), 'old': np.float64(90.05), 'new': np.float64(92.0)}
+2026-06-01 16:22:40,366 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46), np.float64(91.08), np.float64(90.33)]
+2026-06-01 16:22:40,366 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18), np.float64(98.85), np.float64(98.87)]
+
+2026-06-01 16:22:40,366 [trainer.py] => Average Accuracy (CNN): 93.77 
+
+2026-06-01 16:22:40,366 [trainer.py] => All params: 87103491
+2026-06-01 16:22:40,366 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:22:40,368 [mote.py] => Learning on 70-80
+2026-06-01 16:27:49,499 [mote.py] => Task 7, Epoch 20/20 => Loss 0.223, Train_accy 92.94
+2026-06-01 16:30:22,060 [mote.py] => Task correct: 89.075
+2026-06-01 16:30:22,060 [mote.py] => Task acc: 97.925
+2026-06-01 16:30:22,060 [mote.py] => multi-expert-num: 0
+2026-06-01 16:30:22,061 [mote.py] => zero-expert-num: 0
+2026-06-01 16:30:22,063 [trainer.py] => No NME accuracy.
+2026-06-01 16:30:22,063 [trainer.py] => CNN: {'total': np.float64(88.02), '00-09': np.float64(87.2), '10-19': np.float64(90.3), '20-29': np.float64(93.4), '30-39': np.float64(90.5), '40-49': np.float64(88.9), '50-59': np.float64(83.6), '60-69': np.float64(88.9), '70-79': np.float64(81.4), 'old': np.float64(88.97), 'new': np.float64(81.4)}
+2026-06-01 16:30:22,063 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46), np.float64(91.08), np.float64(90.33), np.float64(88.02)]
+2026-06-01 16:30:22,063 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18), np.float64(98.85), np.float64(98.87), np.float64(98.65)]
+
+2026-06-01 16:30:22,063 [trainer.py] => Average Accuracy (CNN): 93.05125 
+
+2026-06-01 16:30:22,064 [trainer.py] => All params: 87118851
+2026-06-01 16:30:22,064 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:30:22,065 [mote.py] => Learning on 80-90
+2026-06-01 16:35:19,582 [mote.py] => Task 8, Epoch 20/20 => Loss 0.205, Train_accy 93.72
+2026-06-01 16:38:27,034 [mote.py] => Task correct: 88.03333333333333
+2026-06-01 16:38:27,034 [mote.py] => Task acc: 97.8
+2026-06-01 16:38:27,034 [mote.py] => multi-expert-num: 0
+2026-06-01 16:38:27,034 [mote.py] => zero-expert-num: 0
+2026-06-01 16:38:27,037 [trainer.py] => No NME accuracy.
+2026-06-01 16:38:27,037 [trainer.py] => CNN: {'total': np.float64(87.1), '00-09': np.float64(86.8), '10-19': np.float64(88.9), '20-29': np.float64(93.0), '30-39': np.float64(89.8), '40-49': np.float64(87.7), '50-59': np.float64(82.8), '60-69': np.float64(88.7), '70-79': np.float64(80.3), '80-89': np.float64(85.9), 'old': np.float64(87.25), 'new': np.float64(85.9)}
+2026-06-01 16:38:27,037 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46), np.float64(91.08), np.float64(90.33), np.float64(88.02), np.float64(87.1)]
+2026-06-01 16:38:27,037 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18), np.float64(98.85), np.float64(98.87), np.float64(98.65), np.float64(98.37)]
+
+2026-06-01 16:38:27,037 [trainer.py] => Average Accuracy (CNN): 92.39 
+
+2026-06-01 16:38:27,037 [trainer.py] => All params: 87134211
+2026-06-01 16:38:27,037 [trainer.py] => Trainable params: 1189632
+2026-06-01 16:38:27,039 [mote.py] => Learning on 90-100
+2026-06-01 16:43:10,604 [mote.py] => Task 9, Epoch 20/20 => Loss 0.247, Train_accy 92.22
+2026-06-01 16:46:55,781 [mote.py] => Task correct: 87.58
+2026-06-01 16:46:55,781 [mote.py] => Task acc: 97.69
+2026-06-01 16:46:55,781 [mote.py] => multi-expert-num: 0
+2026-06-01 16:46:55,781 [mote.py] => zero-expert-num: 0
+2026-06-01 16:46:55,784 [trainer.py] => No NME accuracy.
+2026-06-01 16:46:55,784 [trainer.py] => CNN: {'total': np.float64(86.57), '00-09': np.float64(85.9), '10-19': np.float64(89.0), '20-29': np.float64(91.9), '30-39': np.float64(89.5), '40-49': np.float64(87.5), '50-59': np.float64(81.5), '60-69': np.float64(88.5), '70-79': np.float64(79.7), '80-89': np.float64(84.9), '90-99': np.float64(87.3), 'old': np.float64(86.49), 'new': np.float64(87.3)}
+2026-06-01 16:46:55,784 [trainer.py] => CNN top1 curve: [np.float64(98.1), np.float64(96.0), np.float64(94.7), np.float64(93.72), np.float64(92.46), np.float64(91.08), np.float64(90.33), np.float64(88.02), np.float64(87.1), np.float64(86.57)]
+2026-06-01 16:46:55,784 [trainer.py] => CNN top5 curve: [np.float64(99.8), np.float64(99.5), np.float64(99.37), np.float64(99.3), np.float64(99.18), np.float64(98.85), np.float64(98.87), np.float64(98.65), np.float64(98.37), np.float64(98.1)]
+
+2026-06-01 16:46:55,784 [trainer.py] => Average Accuracy (CNN): 91.80799999999999 
+
+2026-06-01 16:46:55,784 [trainer.py] => Forgetting (CNN): 5.155555555555555
