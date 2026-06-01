@@ -1,0 +1,33 @@
+{
+  "average_incremental_accuracy_cnn": 58.77299999999999,
+  "avg": 58.77299999999999,
+  "cnn_top1_curve": null,
+  "cnn_top5_curve": null,
+  "convnet_type": "resnet32",
+  "dataset": "cifar100",
+  "final_accuracy_cnn": null,
+  "final_exemplar_size": 2000,
+  "fixed_memory": false,
+  "forgetting": 48.333333333333336,
+  "forgetting_cnn": 48.333333333333336,
+  "gpu_memory_samples": "outputs/step2_icarl_cifar100_b0inc10_seed1993/gpu_memory_samples.csv",
+  "increment": 10,
+  "init_cls": 10,
+  "is_true_cnn_resnet": true,
+  "last": null,
+  "logged_total_params": 470004,
+  "logged_trainable_params": 470004,
+  "memory_per_class": 20,
+  "memory_size": 2000,
+  "method": "icarl",
+  "peak_gpu_memory_mib": 3058,
+  "repo_log": "logs/icarl/cifar100/0/10/step2_1993_resnet32.log",
+  "run_name": "step2_icarl_cifar100_b0inc10_seed1993",
+  "seed": [
+    1993
+  ],
+  "total_params": 470654,
+  "trainable_params": 470654,
+  "wall_clock_seconds": 1909.0,
+  "wrapper_log": "logs/step2_icarl_cifar100_b0inc10_seed1993.log"
+}
