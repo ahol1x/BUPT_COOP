@@ -1,0 +1,25 @@
+Dataset: CIFAR10
+Channel: AWGN
+Ratio: 1/12 = 0.08
+Epochs: 1000
+
+SNR 19:
+Test reported value: 69.6012
+Train reported value: 68.8515
+Total time: 6715.3121 s
+Avg time per epoch: 6.7094 s
+
+SNR 7:
+Test reported value: 135.0740
+Train reported value: 134.2323
+Total time: 6998.9563 s
+Avg time per epoch: 6.9929 s
+
+SNR 1:
+Test reported value: 269.8213
+Train reported value: 268.8982
+Total time: 7110.0215 s
+Avg time per epoch: 7.1041 s
+
+Note:
+The repo prints "Test Accuracy" and "Train Accuracy", but for Deep-JSCC this is reconstruction error/loss, not classification accuracy. Lower is better.
