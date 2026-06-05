@@ -1,2 +1,48 @@
 .DS_Store
 .idea/
+
+# Python cache
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Raw datasets
+datasets/raw/
+data/
+dataset/
+**/dataset/
+**/data/
+
+# Experiment outputs
+runs/
+outputs/
+out/
+out_*/
+**/out/
+**/out_*/
+**/out_debug/
+**/out_uploaded_reference/
+logs/
+**/logs/
+
+# Checkpoints / model weights
+checkpoints/
+**/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+
+# Local tools / server-only configs
+.codex/
+
+# Archives / uploaded copies
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
