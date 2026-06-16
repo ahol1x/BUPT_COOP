@@ -1,0 +1,6 @@
+nohup: ignoring input
+Started GPU workers:
+GPU1 worker PID=558173
+GPU2 worker PID=558174
+GPU3 worker PID=558175
+All queued jobs finished at Thu Jun 11 01:08:23 PM EDT 2026

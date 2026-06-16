@@ -1,0 +1,101 @@
+Dataset: CIFAR10
+Channel: AWGN
+Ratio: 1/12 = 0.08
+Epochs: 1000
+
+SNR 19:
+Test reported value: 69.6012
+Train reported value: 68.8515
+Total time: 6715.3121 s
+Avg time per epoch: 6.7094 s
+
+SNR 7:
+Test reported value: 135.0740
+Train reported value: 134.2323
+Total time: 6998.9563 s
+Avg time per epoch: 6.9929 s
+
+SNR 1:
+Test reported value: 269.8213
+Train reported value: 268.8982
+Total time: 7110.0215 s
+Avg time per epoch: 7.1041 s
+
+Note:
+The repo prints "Test Accuracy" and "Train Accuracy", but for Deep-JSCC this is reconstruction error/loss, not classification accuracy. Lower is better.
+Deep-JSCC CIFAR10 Queue Results
+Generated at: Mon Jun 15 08:53:31 PM EDT 2026
+Note: In this repo, Test Accuracy / Train Accuracy are reconstruction error/loss values; lower is better.
+
+==============================
+log_gpu1_awgn_snr1_r16.txt
+Test Accuracy: 156.5054
+Train Accuracy: 156.5283
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 6733.1521s
+AVG TIME PER EPOCH: 6.7269s
+
+==============================
+log_gpu2_awgn_snr19_r16.txt
+Test Accuracy: 24.3777
+Train Accuracy: 24.2857
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 6672.2007s
+AVG TIME PER EPOCH: 6.6662s
+
+==============================
+log_gpu3_awgn_snr7_r16.txt
+Test Accuracy: 69.5927
+Train Accuracy: 69.5539
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 6563.5641s
+AVG TIME PER EPOCH: 6.5575s
+
+==============================
+log_gpu1_rayleigh_snr1_r112.txt
+Test Accuracy: 712.2210
+Train Accuracy: 707.3256
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7239.9888s
+AVG TIME PER EPOCH: 7.2338s
+
+==============================
+log_gpu2_rayleigh_snr7_r112.txt
+Test Accuracy: 402.4917
+Train Accuracy: 395.4831
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7286.2828s
+AVG TIME PER EPOCH: 7.2802s
+
+==============================
+log_gpu3_rayleigh_snr19_r112.txt
+Test Accuracy: 189.3245
+Train Accuracy: 188.9060
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7326.6254s
+AVG TIME PER EPOCH: 7.3206s
+
+==============================
+log_gpu1_rayleigh_snr1_r16.txt
+Test Accuracy: 522.0717
+Train Accuracy: 515.8891
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7303.5187s
+AVG TIME PER EPOCH: 7.2973s
+
+==============================
+log_gpu2_rayleigh_snr7_r16.txt
+Test Accuracy: 277.8101
+Train Accuracy: 272.7603
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7378.6888s
+AVG TIME PER EPOCH: 7.3725s
+
+==============================
+log_gpu3_rayleigh_snr19_r16.txt
+Test Accuracy: 115.7593
+Train Accuracy: 115.5370
+Convergence Time (Epochs): 999.0000
+TOTAL TIME TAKEN: 7087.2472s
+AVG TIME PER EPOCH: 7.0811s
+

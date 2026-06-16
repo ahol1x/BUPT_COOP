@@ -1,0 +1,24 @@
+Worker for GPU 1 started at Thu Jun 11 07:12:30 AM EDT 2026
+Thu Jun 11 07:12:30 AM EDT 2026 | GPU 1 memory=0MiB
+GPU 1 starting job: channel=AWGN snr=1 ratio=1/6
+Output: ./out_cifar10_awgn_snr1_r16
+Log: log_gpu1_awgn_snr1_r16.txt
+Start time: Thu Jun 11 07:12:31 AM EDT 2026
+GPU 1 finished job: channel=AWGN snr=1 ratio=1/6
+Finish time: Thu Jun 11 09:04:50 AM EDT 2026
+Thu Jun 11 09:04:50 AM EDT 2026 | GPU 1 memory=0MiB
+GPU 1 starting job: channel=Rayleigh snr=1 ratio=1/12
+Output: ./out_cifar10_rayleigh_snr1_r112
+Log: log_gpu1_rayleigh_snr1_r112.txt
+Start time: Thu Jun 11 09:04:50 AM EDT 2026
+GPU 1 finished job: channel=Rayleigh snr=1 ratio=1/12
+Finish time: Thu Jun 11 11:05:34 AM EDT 2026
+Thu Jun 11 11:05:35 AM EDT 2026 | GPU 1 memory=0MiB
+GPU 1 starting job: channel=Rayleigh snr=1 ratio=1/6
+Output: ./out_cifar10_rayleigh_snr1_r16
+Log: log_gpu1_rayleigh_snr1_r16.txt
+Start time: Thu Jun 11 11:05:35 AM EDT 2026
+GPU 1 finished job: channel=Rayleigh snr=1 ratio=1/6
+Finish time: Thu Jun 11 01:07:23 PM EDT 2026
+Thu Jun 11 01:07:23 PM EDT 2026 | GPU 1 memory=0MiB
+GPU 1: no jobs left at Thu Jun 11 01:07:23 PM EDT 2026
