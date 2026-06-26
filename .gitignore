@@ -47,3 +47,7 @@ checkpoints/
 *.rar
 *.7z
 official_repos/
+
+# Local mirrored external repos - do not track inside BUPT_COOP
+server_mirror/MoTE/
+server_mirror/PyCIL/
