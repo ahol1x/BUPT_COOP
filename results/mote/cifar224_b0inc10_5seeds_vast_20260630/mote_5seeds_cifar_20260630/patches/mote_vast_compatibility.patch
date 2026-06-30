@@ -1,0 +1,70 @@
+diff --git a/backbone/linears.py b/backbone/linears.py
+index 6d34a85..ff873f8 100644
+--- a/backbone/linears.py
++++ b/backbone/linears.py
+@@ -7,7 +7,7 @@ import torch
+ from torch import nn
+ from torch.nn import functional as F
+ from copy import deepcopy
+-from timm.models.layers.weight_init import trunc_normal_
++from timm.layers import trunc_normal_
+ 
+ 
+ class SimpleLinear(nn.Module):
+diff --git a/models/mote.py b/models/mote.py
+index ed87c92..c0e9ee7 100644
+--- a/models/mote.py
++++ b/models/mote.py
+@@ -19,6 +19,13 @@ class Learner(BaseLearner):
+         self._network = MoteNet(args, True)
+         
+         self.args = args
++        self.moni_adam = args.get("moni_adam", False)
++        self.use_init_ptm = args.get("use_init_ptm", False)
++        self.use_reweight = args.get("use_reweight", False)
++        self.use_old_data = args.get("use_old_data", False)
++        self.alpha = args.get("alpha", 0.1)
++        self.beta = args.get("beta", 0)
++        self.recalc_sim = args.get("recalc_sim", True)
+         self.batch_size = args["batch_size"]
+         self.init_lr = args["init_lr"]
+         self.weight_decay = args["weight_decay"] if args["weight_decay"] is not None else 0.0005
+@@ -233,7 +240,7 @@ class Learner(BaseLearner):
+             inputs = inputs.to(self._device)
+ 
+             with torch.no_grad():
+-                outputs,_ = self._network.forward(inputs, test=True)
++                outputs = self._network.forward(inputs, test=True)
+                 outs = outputs["logits"]
+             predicts = torch.topk(
+                 outs, k=self.topk, dim=1, largest=True, sorted=True
+diff --git a/utils/inc_net.py b/utils/inc_net.py
+index 6d4305b..96ac058 100644
+--- a/utils/inc_net.py
++++ b/utils/inc_net.py
+@@ -3,7 +3,10 @@ import logging
+ import torch
+ from torch import nn
+ from backbone.linears import SimpleLinear, SplitCosineLinear, CosineLinear, EaseCosineLinear, SimpleContinualLinear
+-from backbone.prompt import CodaPrompt
++try:
++    from backbone.prompt import CodaPrompt
++except ModuleNotFoundError:
++    CodaPrompt = None
+ import timm
+ in1k = './checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
+ in21k = './checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz'
+@@ -63,11 +66,11 @@ def get_backbone(args, pretrained=False):
+                 _device = args["device"][0]
+             )
+             if name == "vit_base_patch16_224_limit":
+-                model = vit_moe_limit.vit_base_patch16_224_mote_limit(num_classes=0,
++                model = vit_mote_limit.vit_base_patch16_224_mote_limit(num_classes=0,
+                     global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
+                 model.out_dim=768
+             elif name == "vit_base_patch16_224_in21k_limit":
+-                model = vit_moe_limit.vit_base_patch16_224_in21k_mote_limit(num_classes=0,
++                model = vit_mote_limit.vit_base_patch16_224_in21k_mote_limit(num_classes=0,
+                     global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
+                 model.out_dim=768
+             else:
