@@ -1,0 +1,133 @@
+{
+  "experiment": "MoTE VTAB B0-Inc10 five-seed reproduction",
+  "dataset": "VTAB processed 50-class CIL",
+  "setting": "B0-Inc10",
+  "seeds": [
+    1991,
+    1992,
+    1993,
+    1994,
+    1995
+  ],
+  "per_seed": [
+    {
+      "seed": 1991,
+      "log": "/workspace/runs/mote_vtab_5seed_logs/mote_vtab_seed1991_2026-07-02_1023.log",
+      "average_accuracy_cnn": 90.33200000000001,
+      "last_accuracy_cnn": 81.07,
+      "forgetting_cnn": 7.982499999999995,
+      "top1_curve": [
+        99.58,
+        97.45,
+        88.94,
+        84.62,
+        81.07
+      ],
+      "top5_curve": [
+        100.0,
+        99.88,
+        99.37,
+        98.67,
+        97.75
+      ]
+    },
+    {
+      "seed": 1992,
+      "log": "/workspace/runs/mote_vtab_5seed_logs/mote_vtab_seed1992_2026-07-02_1033.log",
+      "average_accuracy_cnn": 89.55399999999999,
+      "last_accuracy_cnn": 82.82,
+      "forgetting_cnn": 5.642500000000002,
+      "top1_curve": [
+        97.78,
+        95.24,
+        87.28,
+        84.65,
+        82.82
+      ],
+      "top5_curve": [
+        100.0,
+        99.92,
+        99.32,
+        98.41,
+        97.33
+      ]
+    },
+    {
+      "seed": 1993,
+      "log": "/workspace/runs/mote_vtab_5seed_logs/mote_vtab_seed1993_2026-07-02_1044.log",
+      "average_accuracy_cnn": 91.776,
+      "last_accuracy_cnn": 82.49,
+      "forgetting_cnn": 8.487500000000008,
+      "top1_curve": [
+        99.76,
+        97.33,
+        91.43,
+        87.87,
+        82.49
+      ],
+      "top5_curve": [
+        100.0,
+        99.96,
+        99.75,
+        99.23,
+        98.41
+      ]
+    },
+    {
+      "seed": 1994,
+      "log": "/workspace/runs/mote_vtab_5seed_logs/mote_vtab_seed1994_2026-07-02_1054.log",
+      "average_accuracy_cnn": 87.77799999999999,
+      "last_accuracy_cnn": 81.59,
+      "forgetting_cnn": 8.957500000000003,
+      "top1_curve": [
+        99.5,
+        86.39,
+        87.22,
+        84.19,
+        81.59
+      ],
+      "top5_curve": [
+        100.0,
+        99.96,
+        99.51,
+        99.01,
+        97.92
+      ]
+    },
+    {
+      "seed": 1995,
+      "log": "/workspace/runs/mote_vtab_5seed_logs/mote_vtab_seed1995_2026-07-02_1105.log",
+      "average_accuracy_cnn": 92.348,
+      "last_accuracy_cnn": 84.05,
+      "forgetting_cnn": 5.285,
+      "top1_curve": [
+        98.0,
+        97.91,
+        93.47,
+        88.31,
+        84.05
+      ],
+      "top5_curve": [
+        100.0,
+        99.97,
+        99.89,
+        99.28,
+        98.27
+      ]
+    }
+  ],
+  "mean_std": {
+    "average_accuracy_cnn": {
+      "mean": 90.35759999999999,
+      "std": 1.8216966816679476
+    },
+    "last_accuracy_cnn": {
+      "mean": 82.404,
+      "std": 1.154547530420467
+    },
+    "forgetting_cnn": {
+      "mean": 7.271000000000002,
+      "std": 1.6901623442734737
+    }
+  }
+}
