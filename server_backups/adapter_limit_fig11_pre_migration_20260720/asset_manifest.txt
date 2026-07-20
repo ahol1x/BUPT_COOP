@@ -1,0 +1,17 @@
+PRETRAIN_URL=https://storage.googleapis.com/vit_models/augreg/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz
+IMAGENET_A_URL=https://drive.google.com/file/d/19l52ua_vvTtttgVRziCZJjal0TPE9f2p/view
+IMAGENET_R_URL=https://drive.google.com/file/d/1SG4TbiL8_DooekztyCVK8mPmfhMo8fkR/view
+
+The quarantined CIFAR file is incomplete and must not be restored.
+
+SIZE=410448610 PATH=/workspace/pretrains/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz
+a157033e309d33e79cbff2408dd77b4458014fcedc46f0ad853e2d08ecb493f6  /workspace/pretrains/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz
+SIZE=680468056 PATH=/workspace/datasets/imagenet-a.download
+0b688d7ad4b7d9353b16d0fa1be20c34f51bd5ffc8c88901fbca5ebb38d265e5  /workspace/datasets/imagenet-a.download
+SIZE=2085839612 PATH=/workspace/datasets/imagenet-r.download
+c2720edb18da7173b6cb6d9e9a65e18fb6f949f65d8cd10ac99df9003d8b055a  /workspace/datasets/imagenet-r.download
+SIZE=41779200 PATH=/workspace/datasets/cifar-100-python.tar.gz.incomplete_duplicate_20260720
+ad5b42d3e59910d3584520888da06120d6c44db0c0319aec3d8129d1a5e3662b  /workspace/datasets/cifar-100-python.tar.gz.incomplete_duplicate_20260720
+
+667M	/workspace/datasets/imagenet-a
+2.1G	/workspace/datasets/imagenet-r

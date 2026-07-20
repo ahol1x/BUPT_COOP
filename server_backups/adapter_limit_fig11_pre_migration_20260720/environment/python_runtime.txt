@@ -1,0 +1,9 @@
+Python: 3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 16:50:00) [GCC 14.3.0]
+Torch: 2.11.0+cu128
+Torchvision: 0.26.0+cu128
+timm: 0.9.12
+CUDA available: True
+CUDA runtime: 12.8
+GPU count: 2
+GPU 0: NVIDIA GeForce RTX 5090
+GPU 1: NVIDIA GeForce RTX 5090

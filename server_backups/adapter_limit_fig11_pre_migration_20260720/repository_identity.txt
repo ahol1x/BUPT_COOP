@@ -1,0 +1,10 @@
+Main repository:
+2dfd23c818a6b5eddec73dfaba43d95e763dfc15
+2dfd23c Add MoTE ImageNet-A and ImageNet-R reproductions
+
+Official MoTE repository:
+93d20b33c69b0a2d6fc7f43532afdec8c1d70cd1
+93d20b3 Update MoTE
+
+MoTE remote:
+https://github.com/Frank-lilinjie/MoTE.git
