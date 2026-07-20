@@ -1,0 +1,39 @@
+{
+  "runtime_seconds_by_seed": {
+    "seed1991": 480.351,
+    "seed1992": 481.771,
+    "seed1993": 481.306,
+    "seed1994": 484.976,
+    "seed1995": 481.921
+  },
+  "runtime_minutes_mean": 8.034416666666667,
+  "runtime_minutes_std": 0.02898151949470944,
+  "runtime_seconds_mean": 482.065,
+  "parameter_reference_seed": 1993,
+  "all_params_by_task": [
+    86988288,
+    87034371,
+    87065091,
+    87095811,
+    87126531,
+    87157251,
+    87187971,
+    87218691,
+    87249411,
+    87280131
+  ],
+  "trainable_params_by_task": [
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632,
+    1189632
+  ],
+  "gpu_memory_note": "approximately 4154 MiB observed during a seed-1993 snapshot; this was not instrumented peak memory",
+  "gpu_memory_is_instrumented_peak": false
+}

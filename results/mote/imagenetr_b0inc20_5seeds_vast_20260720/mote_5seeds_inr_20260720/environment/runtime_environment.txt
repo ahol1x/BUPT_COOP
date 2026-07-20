@@ -1,0 +1,6 @@
+Mon Jul 20 13:16:14 UTC 2026
+Python 3.12.13
+93d20b33c69b0a2d6fc7f43532afdec8c1d70cd1
+0, NVIDIA GeForce RTX 5090, 32607 MiB, 575.64.03
+1, NVIDIA GeForce RTX 5090, 32607 MiB, 575.64.03
+a157033e309d33e79cbff2408dd77b4458014fcedc46f0ad853e2d08ecb493f6  /workspace/pretrains/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz

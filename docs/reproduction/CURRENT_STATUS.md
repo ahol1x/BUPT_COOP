@@ -30,6 +30,8 @@ C3Box and LAMDA-PILOT are auxiliary environment/testing tools. They are not prim
 |---|---|---|---:|---:|---:|---|
 | MoTE | CIFAR100 B0-Inc10 | 1991-1995 | 88.5540 +/- 0.2061 | 92.7050 +/- 0.2010 | 4.9800 +/- 0.3175 | Five-seed |
 | MoTE | CUB200 B0-Inc20 | 1991-1995 | 87.1720 +/- 0.0879 | 91.3962 +/- 0.4214 | 4.6464 +/- 0.5002 | Five-seed |
+| MoTE | ImageNet-A B0-Inc20 | 1991-1995 | 54.7620 +/- 0.6096 | 65.1350 +/- 1.0472 | 12.0113 +/- 2.0175 | Five-seed |
+| MoTE | ImageNet-R B0-Inc20 | 1991-1995 | 74.3280 +/- 0.4359 | 80.8752 +/- 0.4758 | 7.3596 +/- 0.3031 | Five-seed |
 | MoTE | VTAB B0-Inc10 | 1991-1995 | 82.4040 +/- 1.1545 | 90.3576 +/- 1.8217 | 7.2710 +/- 1.6902 | Five-seed |
 | LDEPrompt | CIFAR100 B0-Inc10 | 1991, 1993, 1995, 1997, 1999, 2001, 2003, 2005, 2007 | 86.61 +/- 0.46 | 90.96 +/- 1.14 | 7.63 +/- 0.64 | Nine-seed repo-default |
 
@@ -41,8 +43,8 @@ The LDEPrompt result is valid as a repo-default reproduction, but it is not yet 
 |---:|---|---|---|
 | 1 | CIFAR100 B0-Inc10, five seeds | Complete | docs/MoTE_reproduction_summary.md |
 | 2 | CUB200 B0-Inc20, five seeds | Complete | docs/MoTE_reproduction_summary.md |
-| 3 | ImageNet-A B0-Inc20, five seeds | Pending | Run seeds 1991-1995 |
-| 4 | ImageNet-R B0-Inc20, five seeds | Pending | Run seeds 1991-1995 |
+| 3 | ImageNet-A B0-Inc20, five seeds | Complete | results/mote/imageneta_b0inc20_5seeds_vast_20260720 |
+| 4 | ImageNet-R B0-Inc20, five seeds | Complete | results/mote/imagenetr_b0inc20_5seeds_vast_20260720 |
 | 5 | VTAB B0-Inc10, five seeds | Complete | docs/MoTE_reproduction_summary.md |
 | 6 | Adapter-Limited MoTE | Pending | Reproduce adapter-limit evaluation |
 | 7 | Expert-filtering ablation | Pending | Reproduce filtering configurations |
@@ -53,7 +55,7 @@ The LDEPrompt result is valid as a repo-default reproduction, but it is not yet 
 | 12 | Adapter growth and memory/storage cost | Pending | Record per-task adapter and prototype growth |
 | 13 | Task Identification Accuracy (TIA) | Pending | Add paper-consistent TIA evaluation |
 
-Current total: 3 complete, 1 partial, and 9 pending.
+Current total: 5 complete, 1 partial, and 7 pending.
 
 ## Other method status
 
@@ -67,18 +69,15 @@ Current total: 3 complete, 1 partial, and 9 pending.
 
 ## Immediate next action
 
-Run MoTE ImageNet-A and ImageNet-R reproductions.
+Reproduce Adapter-Limited MoTE, checklist item 6.
 
-For each dataset:
+1. Identify the exact paper table, datasets, adapter limits, and metrics used for Adapter-Limited MoTE.
+2. Verify the official `mote_limit` model path, configuration, and compatibility patches.
+3. Run seed 1993 as a smoke test before launching the full target configuration.
+4. Preserve the adapter cap, per-task parameter counts, accuracy, forgetting, runtime, and memory evidence.
+5. Run the paper-consistent seed set and update this file with the result package.
 
-1. Confirm the dataset structure and class count.
-2. Confirm the B0-Inc20 split.
-3. Run seed 1993 as a smoke test.
-4. Run seeds 1991-1995.
-5. Save per-seed metrics and mean/std.
-6. Save Top-1 and Top-5 curves.
-7. Record runtime, peak GPU memory, trainable parameters, total parameters, adapter count, and prototype memory.
-8. Commit configs, parsers, summaries, logs or log manifests, and environment notes.
+After item 6, continue items 7-13 in checklist order before resuming LDEPrompt.
 
 ## Documentation rule
 
