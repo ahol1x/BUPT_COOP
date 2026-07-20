@@ -1,32 +1,52 @@
-﻿# Baseline Comparison: CIFAR100 B0-Inc10
+# Baseline Comparison: CIFAR100 B0-Inc10
 
-| Method | Run Type | Seeds | Last Top-1 | Average Accuracy | Forgetting | Status |
-|---|---:|---:|---:|---:|---:|---|
-| **MoTE** | Single-seed | 1993 | **88.33** | **92.977** | **4.778** | Completed |
-| **LDEPrompt** | 9-seed repo-default | 1991, 1993, 1995, 1997, 1999, 2001, 2003, 2005, 2007 | 86.61 ± 0.46 | 90.96 ± 1.14 | 7.63 ± 0.64 | Completed |
+Last updated: 2026-07-20
 
-## Interpretation
+## Reproduced results
 
-| Comparison Point | Current Observation |
-|---|---|
-| Best reproduced method so far | **MoTE** |
-| Higher final accuracy | **MoTE**, by about `+1.72` Last Top-1 |
-| Higher average accuracy | **MoTE**, by about `+2.02` Average Accuracy |
-| Lower forgetting | **MoTE**, by about `-2.85` forgetting |
-| Stronger statistical evidence | **LDEPrompt**, because it has 9 seeds |
-| Fairness warning | MoTE is only single-seed, while LDEPrompt is 9-seed |
-| Current conclusion | MoTE looks stronger in our reproduction, but we should run MoTE multi-seed before making a final claim |
+| Method | Run type | Seeds | Last Top-1 | Average Accuracy | Forgetting | Status |
+|---|---|---|---:|---:|---:|---|
+| **MoTE** | Five-seed reproduction | 1991, 1992, 1993, 1994, 1995 | **88.5540 +/- 0.2061** | **92.7050 +/- 0.2010** | **4.9800 +/- 0.3175** | Completed |
+| **LDEPrompt** | Nine-seed repo-default reproduction | 1991, 1993, 1995, 1997, 1999, 2001, 2003, 2005, 2007 | 86.61 +/- 0.46 | 90.96 +/- 1.14 | 7.63 +/- 0.64 | Completed |
 
-## LDEPrompt Paper/Reference Comparison
+## Aggregate difference
+
+The values below are MoTE minus LDEPrompt, using the reproduced aggregate means.
+
+| Comparison point | Difference |
+|---|---:|
+| Last Top-1 | +1.94 |
+| Average Accuracy | +1.75 |
+| Forgetting | -2.65 |
+
+MoTE currently has higher reproduced final and average accuracy and lower forgetting on CIFAR100 B0-Inc10.
+
+## Comparison limitations
+
+This is more informative than the earlier single-seed comparison, but it is not yet a fully controlled head-to-head experiment:
+
+- MoTE uses five seeds; LDEPrompt uses nine seeds.
+- The two seed sets are different.
+- LDEPrompt is a repo-default reproduction, not a confirmed paper-exact reproduction.
+- Configuration, optimization, and implementation differences must be checked before making a final method-level claim.
+
+Therefore, the correct current conclusion is that MoTE performs better in the available reproduced aggregates, not that MoTE has been proven universally superior to LDEPrompt.
+
+## Paper/reference comparison
 
 | Method | Source | Last Top-1 | Average Accuracy |
 |---|---|---:|---:|
-| LDEPrompt | Paper/reference | 88.13 ± 0.76 | 91.60 ± 0.80 |
-| LDEPrompt | Our 9-seed repo-default run | 86.61 ± 0.46 | 90.96 ± 1.14 |
-| Difference | Our result minus paper | -1.52 | -0.64 |
+| MoTE | Reported/reference | 88.98 | 93.06 |
+| MoTE | Our five-seed reproduction | 88.5540 +/- 0.2061 | 92.7050 +/- 0.2010 |
+| LDEPrompt | Paper/reference | 88.13 +/- 0.76 | 91.60 +/- 0.80 |
+| LDEPrompt | Our nine-seed repo-default reproduction | 86.61 +/- 0.46 | 90.96 +/- 1.14 |
 
-## Conclusion
+## Source records
 
-We have completed reproduction of two PTM-CIL baselines on CIFAR100 B0-Inc10. MoTE achieved 88.33 Last Top-1, 92.977 Average Accuracy, and 4.778 Forgetting on seed1993. LDEPrompt was reproduced with 9 seeds, achieving 86.61 ± 0.46 Last Top-1, 90.96 ± 1.14 Average Accuracy, and 7.63 ± 0.64 Forgetting.
+- MoTE summary: docs/MoTE_reproduction_summary.md
+- MoTE result directory: results/mote/cifar224_b0inc10_5seeds_vast_20260630/mote_5seeds_cifar_20260630
+- LDEPrompt summary: docs/reproduction/ldeprompt_cifar_b0inc10_multiseed_5090_2026-07-12_summary.md
 
-Current results suggest MoTE performs better in both accuracy and forgetting, but this comparison is not fully fair yet because MoTE has only been run with one seed while LDEPrompt has been evaluated across nine seeds. The next step should be either MoTE multi-seed reproduction or using these two baselines to motivate an adaptive method-selection strategy.
+## Current workflow implication
+
+This comparison is a preserved baseline record. It does not change the active execution order. The current priority is to finish the full MoTE paper-level reproduction checklist before continuing LDEPrompt, QKD, or TaE.
